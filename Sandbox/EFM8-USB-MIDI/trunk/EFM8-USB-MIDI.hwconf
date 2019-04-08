@@ -59,9 +59,11 @@
     <property object="USBLIB_0" propertyId="device.deviceproperties.productstring" value="USB MIDI"/>
     <property object="USBLIB_0" propertyId="device.deviceproperties.vendoridvid" value="5317"/>
     <property object="USBLIB_0" propertyId="device.deviceproperties.vendorstring" value="ASP Digital"/>
+    <property object="USBLIB_0" propertyId="endpoints.endpoint1in.associatedinterface" value="1"/>
     <property object="USBLIB_0" propertyId="endpoints.endpoint1in.bulkmaxpacketsizebytes" value="64"/>
     <property object="USBLIB_0" propertyId="endpoints.endpoint1in.endpoint1in" value="Enabled"/>
     <property object="USBLIB_0" propertyId="endpoints.endpoint1in.maxpacketsizebytes" value="64"/>
+    <property object="USBLIB_0" propertyId="endpoints.endpoint1out.associatedinterface" value="1"/>
     <property object="USBLIB_0" propertyId="endpoints.endpoint1out.bulkmaxpacketsizebytes" value="64"/>
     <property object="USBLIB_0" propertyId="endpoints.endpoint1out.endpoint1out" value="Enabled"/>
     <property object="USBLIB_0" propertyId="endpoints.endpoint1out.maxpacketsizebytes" value="64"/>
