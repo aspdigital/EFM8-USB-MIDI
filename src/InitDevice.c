@@ -39,7 +39,6 @@ extern void enter_DefaultMode_from_RESET(void) {
 	VREF_0_enter_DefaultMode_from_RESET();
 	HFOSC_0_enter_DefaultMode_from_RESET();
 	CLOCK_0_enter_DefaultMode_from_RESET();
-	CIP51_0_enter_DefaultMode_from_RESET();
 	TIMER01_0_enter_DefaultMode_from_RESET();
 	TIMER16_3_enter_DefaultMode_from_RESET();
 	TIMER_SETUP_0_enter_DefaultMode_from_RESET();
@@ -134,8 +133,7 @@ extern void CLOCK_0_enter_DefaultMode_from_RESET(void) {
 	 - USB clock 
 	 - Enabling the Crossbar SYSCLK signal outputs SYSCLK
 	 ***********************************************************************/
-	CLKSEL = CLKSEL_CLKSL__HFOSC_DIV_2 | CLKSEL_USBCLK__HFOSC
-			| CLKSEL_OUTCLK__SYSCLK;
+	CLKSEL = CLKSEL_CLKSL__HFOSC | CLKSEL_USBCLK__HFOSC | CLKSEL_OUTCLK__SYSCLK;
 	// [CLKSEL - Clock Select]$
 
 }
@@ -152,9 +150,9 @@ extern void TIMER01_0_enter_DefaultMode_from_RESET(void) {
 
 	// $[TH0 - Timer 0 High Byte]
 	/***********************************************************************
-	 - Timer 0 High Byte = 0xD0
+	 - Timer 0 High Byte = 0xA0
 	 ***********************************************************************/
-	TH0 = (0xD0 << TH0_TH0__SHIFT);
+	TH0 = (0xA0 << TH0_TH0__SHIFT);
 	// [TH0 - Timer 0 High Byte]$
 
 	// $[TL0 - Timer 0 Low Byte]
@@ -241,9 +239,9 @@ extern void UARTE_1_enter_DefaultMode_from_RESET(void) {
 
 	// $[SBRLL1 - UART1 Baud Rate Generator Low Byte]
 	/***********************************************************************
-	 - UART1 Baud Rate Reload Low = 0xF8
+	 - UART1 Baud Rate Reload Low = 0xEF
 	 ***********************************************************************/
-	SBRLL1 = (0xF8 << SBRLL1_BRL__SHIFT);
+	SBRLL1 = (0xEF << SBRLL1_BRL__SHIFT);
 	// [SBRLL1 - UART1 Baud Rate Generator Low Byte]$
 
 	// $[SCON1 - UART1 Serial Port Control]
@@ -455,9 +453,9 @@ extern void PORTS_0_enter_DefaultMode_from_RESET(void) {
 extern void SPI_0_enter_DefaultMode_from_RESET(void) {
 	// $[SPI0CKR - SPI0 Clock Rate]
 	/***********************************************************************
-	 - SPI0 Clock Rate = 0x0B
+	 - SPI0 Clock Rate = 0x17
 	 ***********************************************************************/
-	SPI0CKR = (0x0B << SPI0CKR_SPI0CKR__SHIFT);
+	SPI0CKR = (0x17 << SPI0CKR_SPI0CKR__SHIFT);
 	// [SPI0CKR - SPI0 Clock Rate]$
 
 	// $[SPI0CFG - SPI0 Configuration]
@@ -724,16 +722,16 @@ extern void TIMER16_3_enter_DefaultMode_from_RESET(void) {
 
 	// $[TMR3RLH - Timer 3 Reload High Byte]
 	/***********************************************************************
-	 - Timer 3 Reload High Byte = 0xF8
+	 - Timer 3 Reload High Byte = 0xF0
 	 ***********************************************************************/
-	TMR3RLH = (0xF8 << TMR3RLH_TMR3RLH__SHIFT);
+	TMR3RLH = (0xF0 << TMR3RLH_TMR3RLH__SHIFT);
 	// [TMR3RLH - Timer 3 Reload High Byte]$
 
 	// $[TMR3RLL - Timer 3 Reload Low Byte]
 	/***********************************************************************
-	 - Timer 3 Reload Low Byte = 0x30
+	 - Timer 3 Reload Low Byte = 0x60
 	 ***********************************************************************/
-	TMR3RLL = (0x30 << TMR3RLL_TMR3RLL__SHIFT);
+	TMR3RLL = (0x60 << TMR3RLL_TMR3RLL__SHIFT);
 	// [TMR3RLL - Timer 3 Reload Low Byte]$
 
 	// $[TMR3CN0]
