@@ -54,19 +54,22 @@ DEVICE DESCRIPTOR:
 	bDeviceSubclass:	0x00	unused
 	bDeviceProtocol:	0x00	unused
 	bMaxPacketSize0:	0x40 	64 bytes
-	idVendor:			
-	idProduct:
-	bcdDevice:
-	iManufacturer:
-	iProduct:
-	iSerialNumber:
+	idVendor:			0x14c5
+	idProduct:			0x0666
+	bcdDevice:			0x0100
+	iManufacturer:		0x01
+	iProduct:			0x02
+	iSerialNumber:		0x03
 	bNumConfigurations:	0x01 One configuration
 	
 CONFIGURATION DESCRIPTOR:
 	HEADER --
 	bLength:			0x09
 	bDescriptorType:	0x02 CONFIGURATION
-	wTotalLength:		tbd		Length of the entire configuration descriptor
+	wTotalLength:		0x0085		Length of the entire configuration descriptor: 133
+								9 (CFG) + 9 (ACIF) + 9 (ACCSIF) + 9 (MSIF) + 7 (MSCSIF) + 
+								15 (jack 1,2) + 15 (jack 3,4) + 15 (jack 5, 6) + 15 (jack 7, 8) + 
+								9 (IN Bulk EP) + 6 (IN Bulk EP CS) + 9 (OUT Bulk EP) + 6 (OUT Bulk EP CS)
 	bNumInterfaces:		2 (AC and MS)
 	bConfigurationValue:1 ID of this configuration
 	iConfiguration:
@@ -105,11 +108,11 @@ CONFIGURATION DESCRIPTOR:
 	iInterface:			0x00	unused unless we add one
 	
 	CLASS-SPECIFIC MIDISTREAMING INTERFACE DESCRIPTOR
-	bLength:			0x09	length of this descriptor
+	bLength:			0x07	length of this descriptor
 	bDescriptorType:	0x24	CS_INTERFACE
 	bDescriptorSubtype:	0x01	MS_HEADER
 	bcdADC:				0x0100	revision of this class spec
-	wTotalLength:		0x0063	total size of class-specific descriptors = 100
+	wTotalLength:		0x0061	total size of class-specific descriptors = 97
 								7 + 
 								6 + 9 + (jacks 1 and 2)
 								6 + 9 + (jacks 3 and 4)
@@ -117,8 +120,6 @@ CONFIGURATION DESCRIPTOR:
 								6 + 9 + (jacks 7 and 8)
 								9 + 6 + (IN endpoint)
 								9 + 6   (out endpoint)
-	bInCollection:		0x01	Number of streaming interfaces
-	BaInterfaceNr(1)	0x01	MIDIStreaming Interface (interface 0x01) belongs to this AC IF
 	
 	These are for the two physical MIDI jacks.
 	EMBEDDED MIDI IN JACK DESCRIPTOR (from Endpoint, to feed Physical MIDI OUT Jack)

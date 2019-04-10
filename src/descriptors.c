@@ -59,7 +59,7 @@ SI_SEGMENT_VARIABLE(configDesc[],
 		// .Config_Header = {
 				USB_CONFIG_DESCSIZE,		// bLength
 				USB_CONFIG_DESCRIPTOR,		// bDescriptorType
-				USB_CONFIG_DESCSIZE,		// wTotalLength
+				htole16(0x0085),			// wTotalLength, 133 bytes
 				2,							// bNumInterfaces
 				1,							// bConfigurationValue
 				4,							// iConfiguration
@@ -102,7 +102,7 @@ SI_SEGMENT_VARIABLE(configDesc[],
 				USB_CS_INTERFACE_DESCRIPTOR,			// bDescriptorType
 				MIDI_CS_IF_HEADER,						// bDescriptorSubtype
 				htole16(0x0100),						// BcdADC
-				htole16(0x0065),						// wTotalLength WORK THIS OUT total size of class-specific descriptors
+				htole16(0x0061),						// wTotalLength
 
 		// .Jack_1 = {
 				sizeof(USB_MIDI_In_Jack_Descriptor_t),	// bLength

@@ -14,7 +14,7 @@
 // $[Generated Includes]
 #include "efm8_usb.h"
 // [Generated Includes]$
-#include "rgb_led.h"
+//#include "rgb_led.h"
 
 //-----------------------------------------------------------------------------
 // SiLabs_Startup() Routine
@@ -33,12 +33,11 @@ void SiLabs_Startup(void) {
 // main() Routine
 // ----------------------------------------------------------------------------
 int main(void) {
-	Color ledcolor = { 0, 0, 255 };
 	// Call hardware initialization routine
 	enter_DefaultMode_from_RESET();
 
 	// turn on the blue LED so we know the fucking thing is alive.
-	RGB_SetColor(ledcolor, 255);
+	//PCA0CPH1 = 255;
 
 	while (1) {
 // $[Generated Run-time code]
