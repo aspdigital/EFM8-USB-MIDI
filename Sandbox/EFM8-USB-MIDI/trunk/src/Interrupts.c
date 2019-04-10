@@ -89,3 +89,27 @@ SI_INTERRUPT (TIMER3_ISR, TIMER3_IRQn)
 
 }
 
+//-----------------------------------------------------------------------------
+// USB0_ISR
+//-----------------------------------------------------------------------------
+//
+// USB0 ISR Content goes here. Remember to clear flag bits:
+// CMINT::RSTINT (Reset Interrupt Flag)
+// CMINT::RSUINT (Resume Interrupt Flag)
+// CMINT::SOF (Start of Frame Interrupt Flag)
+// CMINT::SUSINT (Suspend Interrupt Flag)
+// IN1INT::EP0 (Endpoint 0 Interrupt Flag)
+// IN1INT::IN1 (IN Endpoint 1 Interrupt Flag)
+// IN1INT::IN2 (IN Endpoint 2 Interrupt Flag)
+// IN1INT::IN3 (IN Endpoint 3 Interrupt Flag)
+// OUT1INT::OUT1 (OUT Endpoint 1 Interrupt Flag)
+// OUT1INT::OUT2 (OUT Endpoint 2 Interrupt Flag)
+// OUT1INT::OUT3 (OUT Endpoint 3 Interrupt Flag)
+//
+//-----------------------------------------------------------------------------
+SI_INTERRUPT (USB0_ISR, USB0_IRQn)
+{
+
+}
+
+

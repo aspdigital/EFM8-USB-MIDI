@@ -22,11 +22,8 @@
     <property object="HFOSC_0" propertyId="hfosc.highfrequencyoscillatorcontrol.hfoscundividedfrequency" value="48.000 MHz"/>
     <property object="HFOSC_0" propertyId="hfosc.highfrequencyoscillatorcontrol.oscillatorfrequencydividercontrol" value="Divide by 1"/>
     <property object="INTERRUPT_0" propertyId="ABPeripheral.included" value="true"/>
-    <property object="INTERRUPT_0" propertyId="interrupt.extendedinterruptenable1.enableadc0conversioncompleteinterrupt" value="Enabled"/>
-    <property object="INTERRUPT_0" propertyId="interrupt.extendedinterruptenable1.enabletimer3interrupt" value="Enabled"/>
+    <property object="INTERRUPT_0" propertyId="interrupt.extendedinterruptenable1.enableusbusb0interrupt" value="Enabled"/>
     <property object="INTERRUPT_0" propertyId="interrupt.interruptenable.enableallinterrupts" value="Enabled"/>
-    <property object="INTERRUPT_0" propertyId="interrupt.interruptenable.enablespi0interrupt" value="Enabled"/>
-    <property object="INTERRUPT_0" propertyId="interrupt.interruptenable.enabletimer2interrupt" value="Enabled"/>
     <property object="P0.0" propertyId="ports.settings.iomode" value="Digital Push-Pull Output"/>
     <property object="P0.0" propertyId="ports.settings.outputmode" value="Push-pull"/>
     <property object="P0.0" propertyId="ports.settings.skip" value="Skipped"/>
@@ -86,7 +83,7 @@
     <property object="PCA_0" propertyId="pca.pcacountertimerconfiguration.pcaclockfrequency" value="4.000 MHz"/>
     <property object="PCA_0" propertyId="pca.pcacountertimerconfiguration.pcaclockfrequencyintegervalue" value="4000000.0"/>
     <property object="PCA_0" propertyId="pca.pcacountertimerconfiguration.pcaclockperiod" value="250.000 ns"/>
-    <property object="PCA_0" propertyId="pca.pcastartrun.pcacountertimerruncontrol" value="Start"/>
+    <property object="PCA_0" propertyId="pca.pcastartrun.pcacountertimerrunstatus" value="Stopped"/>
     <property object="PCA_0" propertyId="pca.watchdogcontrol.enablewatchdogtimer" value="Disabled"/>
     <property object="SPI_0" propertyId="ABPeripheral.included" value="true"/>
     <property object="SPI_0" propertyId="spi.clockrate.spiclockfrequencyactual" value="1.000 MHz"/>
