@@ -267,7 +267,7 @@ extern void INTERRUPT_0_enter_DefaultMode_from_RESET(void) {
 	 ***********************************************************************/
 	EIE1 = EIE1_EADC0__DISABLED | EIE1_EWADC0__DISABLED | EIE1_ECP0__DISABLED
 			| EIE1_ECP1__DISABLED | EIE1_EPCA0__DISABLED | EIE1_ESMB0__DISABLED
-			| EIE1_ET3__DISABLED | EIE1_EUSB0__ENABLED;
+			| EIE1_ET3__DISABLED; // | EIE1_EUSB0__ENABLED;
 	// [EIE1 - Extended Interrupt Enable 1]$
 
 	// $[EIP1 - Extended Interrupt Priority 1]
