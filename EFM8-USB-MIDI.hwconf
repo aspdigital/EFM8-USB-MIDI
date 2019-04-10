@@ -15,7 +15,6 @@
     <property object="CLOCK_0" propertyId="clock.clockselect.sysclk" value="48.000 MHz"/>
     <property object="CLOCK_0" propertyId="clock.clockselect.usbclk" value="48.000 MHz"/>
     <property object="CROSSBAR0" propertyId="xbar0.pca0.cex" value="CEX0, CEX1, and CEX2"/>
-    <property object="CROSSBAR0" propertyId="xbar0.spi0.clockdata" value="Enabled"/>
     <property object="DefaultMode" propertyId="mode.diagramLocation" value="100, 100"/>
     <property object="HFOSC_0" propertyId="ABPeripheral.included" value="true"/>
     <property object="HFOSC_0" propertyId="hfosc.highfrequencyoscillatorcontrol.hfoscdividedfrequency" value="48.000 MHz"/>
@@ -83,7 +82,7 @@
     <property object="PCA_0" propertyId="pca.pcacountertimerconfiguration.pcaclockfrequency" value="4.000 MHz"/>
     <property object="PCA_0" propertyId="pca.pcacountertimerconfiguration.pcaclockfrequencyintegervalue" value="4000000.0"/>
     <property object="PCA_0" propertyId="pca.pcacountertimerconfiguration.pcaclockperiod" value="250.000 ns"/>
-    <property object="PCA_0" propertyId="pca.pcastartrun.pcacountertimerrunstatus" value="Stopped"/>
+    <property object="PCA_0" propertyId="pca.pcastartrun.pcacountertimerruncontrol" value="Start"/>
     <property object="PCA_0" propertyId="pca.watchdogcontrol.enablewatchdogtimer" value="Disabled"/>
     <property object="SPI_0" propertyId="ABPeripheral.included" value="true"/>
     <property object="SPI_0" propertyId="spi.clockrate.spiclockfrequencyactual" value="1.000 MHz"/>
