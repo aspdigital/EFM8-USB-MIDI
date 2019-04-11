@@ -56,19 +56,19 @@
     <property object="PBCFG_0" propertyId="pbcfg.settings.enablecrossbar" value="Enabled"/>
     <property object="PCACH_0" propertyId="ABPeripheral.included" value="true"/>
     <property object="PCACH_0" propertyId="pcach.pcachannel.dutycycle" value="100.00%"/>
-    <property object="PCACH_0" propertyId="pcach.pcachannel.outputfrequency" value="15.625 kHz"/>
+    <property object="PCACH_0" propertyId="pcach.pcachannel.outputfrequency" value="187.500 kHz"/>
     <property object="PCACH_0" propertyId="pcach.pcachannelcapturecomparemode.enablechannelcomparatorfunction" value="Enabled"/>
     <property object="PCACH_0" propertyId="pcach.pcachannelcapturecomparemode.enablechannelpulsewidthmodulationmoden" value="Enabled"/>
     <property object="PCACH_0" propertyId="pcach.pcacontrol.channelcapturecomparemode" value="8-Bit Pulse Width Modulator"/>
     <property object="PCACH_1" propertyId="ABPeripheral.included" value="true"/>
     <property object="PCACH_1" propertyId="pcach.pcachannel.dutycycle" value="100.00%"/>
-    <property object="PCACH_1" propertyId="pcach.pcachannel.outputfrequency" value="15.625 kHz"/>
+    <property object="PCACH_1" propertyId="pcach.pcachannel.outputfrequency" value="187.500 kHz"/>
     <property object="PCACH_1" propertyId="pcach.pcachannelcapturecomparemode.enablechannelcomparatorfunction" value="Enabled"/>
     <property object="PCACH_1" propertyId="pcach.pcachannelcapturecomparemode.enablechannelpulsewidthmodulationmoden" value="Enabled"/>
     <property object="PCACH_1" propertyId="pcach.pcacontrol.channelcapturecomparemode" value="8-Bit Pulse Width Modulator"/>
     <property object="PCACH_2" propertyId="ABPeripheral.included" value="true"/>
     <property object="PCACH_2" propertyId="pcach.pcachannel.dutycycle" value="100.00%"/>
-    <property object="PCACH_2" propertyId="pcach.pcachannel.outputfrequency" value="15.625 kHz"/>
+    <property object="PCACH_2" propertyId="pcach.pcachannel.outputfrequency" value="187.500 kHz"/>
     <property object="PCACH_2" propertyId="pcach.pcachannelcapturecomparemode.enablechannelcomparatorfunction" value="Enabled"/>
     <property object="PCACH_2" propertyId="pcach.pcachannelcapturecomparemode.enablechannelpulsewidthmodulationmoden" value="Enabled"/>
     <property object="PCACH_2" propertyId="pcach.pcacontrol.channelcapturecomparemode" value="8-Bit Pulse Width Modulator"/>
@@ -79,9 +79,10 @@
     <property object="PCACH_4" propertyId="pcach.watchdogtimer.timeoutperiodmax" value="16.384 ms"/>
     <property object="PCACH_4" propertyId="pcach.watchdogtimer.timeoutperiodmin" value="64.000 us"/>
     <property object="PCA_0" propertyId="ABPeripheral.included" value="true"/>
-    <property object="PCA_0" propertyId="pca.pcacountertimerconfiguration.pcaclockfrequency" value="4.000 MHz"/>
-    <property object="PCA_0" propertyId="pca.pcacountertimerconfiguration.pcaclockfrequencyintegervalue" value="4000000.0"/>
-    <property object="PCA_0" propertyId="pca.pcacountertimerconfiguration.pcaclockperiod" value="250.000 ns"/>
+    <property object="PCA_0" propertyId="pca.pcacountertimerconfiguration.pcaclockfrequency" value="48.000 MHz"/>
+    <property object="PCA_0" propertyId="pca.pcacountertimerconfiguration.pcaclockfrequencyintegervalue" value="48000000"/>
+    <property object="PCA_0" propertyId="pca.pcacountertimerconfiguration.pcaclockperiod" value="20.000 ns"/>
+    <property object="PCA_0" propertyId="pca.pcacountertimerconfiguration.selectpcacountertimerpulse" value="SYSCLK"/>
     <property object="PCA_0" propertyId="pca.pcastartrun.pcacountertimerruncontrol" value="Start"/>
     <property object="PCA_0" propertyId="pca.watchdogcontrol.enablewatchdogtimer" value="Disabled"/>
     <property object="SPI_0" propertyId="ABPeripheral.included" value="true"/>

@@ -57,7 +57,7 @@ extern void PCA_0_enter_DefaultMode_from_RESET(void) {
 	// $[PCA0MD - PCA Mode]
 	/***********************************************************************
 	 - Disable Watchdog Timer
-	 - System clock divided by 12
+	 - System clock
 	 - PCA continues to function normally while the system controller is in
 	 Idle Mode
 	 - Disable the CF interrupt
@@ -66,7 +66,7 @@ extern void PCA_0_enter_DefaultMode_from_RESET(void) {
 	 ***********************************************************************/
 	SFRPAGE = 0x00;
 	PCA0MD &= ~PCA0MD_WDTE__BMASK;
-	PCA0MD = PCA0MD_CPS__SYSCLK_DIV_12 | PCA0MD_CIDL__NORMAL
+	PCA0MD = PCA0MD_CPS__SYSCLK | PCA0MD_CIDL__NORMAL
 			| PCA0MD_ECF__OVF_INT_DISABLED | PCA0MD_WDTE__DISABLED
 			| PCA0MD_WDLCK__UNLOCKED;
 	// [PCA0MD - PCA Mode]$
@@ -267,7 +267,7 @@ extern void INTERRUPT_0_enter_DefaultMode_from_RESET(void) {
 	 ***********************************************************************/
 	EIE1 = EIE1_EADC0__DISABLED | EIE1_EWADC0__DISABLED | EIE1_ECP0__DISABLED
 			| EIE1_ECP1__DISABLED | EIE1_EPCA0__DISABLED | EIE1_ESMB0__DISABLED
-			| EIE1_ET3__DISABLED; // | EIE1_EUSB0__ENABLED;
+			| EIE1_ET3__DISABLED | EIE1_EUSB0__ENABLED;
 	// [EIE1 - Extended Interrupt Enable 1]$
 
 	// $[EIP1 - Extended Interrupt Priority 1]
