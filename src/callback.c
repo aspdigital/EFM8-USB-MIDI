@@ -43,9 +43,8 @@ void USBD_ResetCb(void) {
 }
 
 void USBD_SofCb(uint16_t sofNr) {
-#if 0
 	static Color ledcolor = {0, 0, 0};
-	static thisColor = 0; // 0 = red, 1 = green, 2 = blue
+	static uint8_t thisColor = 0; // 0 = red, 1 = green, 2 = blue
 
 	switch (thisColor) {
 	case 0 : if (255 == ledcolor.red) {
@@ -71,7 +70,6 @@ void USBD_SofCb(uint16_t sofNr) {
 		break;
 	} // switch
 	RGB_SetColor(ledcolor, 255);
-#endif
 }
 
 void USBD_DeviceStateChangeCb(USBD_State_TypeDef oldState,
