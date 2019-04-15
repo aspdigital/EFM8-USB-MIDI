@@ -15,6 +15,10 @@
 #include "efm8_usb.h"
 // [Generated Includes]$
 //#include "rgb_led.h"
+#include "bsp.h"
+#include "disp.h"
+#include "render.h"
+#include "tick.h"
 
 //-----------------------------------------------------------------------------
 // SiLabs_Startup() Routine
@@ -33,14 +37,31 @@ void SiLabs_Startup(void) {
 // main() Routine
 // ----------------------------------------------------------------------------
 int main(void) {
+	static SI_SEGMENT_VARIABLE(line[DISP_BUF_SIZE], uint8_t, RENDER_LINE_SEG);
+	uint8_t y;
+	uint16_t lastTick;
 	// Call hardware initialization routine
 	enter_DefaultMode_from_RESET();
 
 	// turn on the blue LED so we know the fucking thing is alive.
-	//PCA0CPH1 = 255;
+	PCA0CPH1 = 255;
+	DISP_Init();
+	lastTick = GetTickCount();
+
+	for (y = 0; y < FONT_HEIGHT; y++) {
+		RENDER_ClrLine (line);
+		RENDER_StrLine(line, 3, y, "TEST");
+		DISP_WriteLine(4 + y, line);
+	}
 
 	while (1) {
 // $[Generated Run-time code]
 // [Generated Run-time code]$
+		for (y = 0; y < FONT_HEIGHT; y++) {
+			RENDER_ClrLine (line);
+			RENDER_StrLine(line, 3, y, "TEST");
+			DISP_WriteLine(4 + y, line);
+		}
+
 	}
 }
