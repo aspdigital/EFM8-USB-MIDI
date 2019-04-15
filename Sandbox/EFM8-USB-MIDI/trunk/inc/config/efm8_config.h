@@ -10,6 +10,6 @@
 #define EFM8PDL_SPI0_USE                  1
 #define EFM8PDL_SPI0_USE_BUFFER           1
 #define EFM8PDL_SPI0_USE_FIFO             0
-#define EFM8PDL_SPI0_TX_SEGTYPE           SI_SEG_IDATA
+#define EFM8PDL_SPI0_TX_SEGTYPE           SI_SEG_PDATA
 
 #endif // __EFM8_CONFIG_H__
