@@ -9,6 +9,6 @@
 // Configuration
 /////////////////////////////////////////////////////////////////////////////
 
-#define JOYSTICK_DIRECTIONS      CARDINAL_ONLY
+#define JOYSTICK_DIRECTIONS      CARDINAL_AND_SECONDARY
 
 #endif /* JOYSTICK_CONFIG_H_ */

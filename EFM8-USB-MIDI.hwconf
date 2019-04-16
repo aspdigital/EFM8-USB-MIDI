@@ -4,7 +4,6 @@
     <property object="ADC_0" propertyId="ABPeripheral.included" value="true"/>
     <property object="ADC_0" propertyId="adc.configuration.sarclockdivider" value="6"/>
     <property object="ADC_0" propertyId="adc.control.enableadc" value="Enabled"/>
-    <property object="ADC_0" propertyId="adc.control.startofconversion" value="Timer 0 overflow"/>
     <property object="ADC_0" propertyId="adc.hidden.sarclockdividerreal" value="5"/>
     <property object="ADC_0" propertyId="adc.inputselection.negativeinput" value="Ground (single-ended mode)"/>
     <property object="ADC_0" propertyId="adc.inputselection.positiveinput" value="ADC0P.4 (P2.5)"/>
