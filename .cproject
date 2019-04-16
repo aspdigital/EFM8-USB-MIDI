@@ -187,7 +187,7 @@
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 		</cconfiguration>
 	</storageModule>
-	<storageModule moduleId="com.silabs.ss.framework.ide.project.core.cpp" project.generation="2" projectCommon.boardIds="brd5001a:0.0.0.A01" projectCommon.buildArtifactType="EXE" projectCommon.importModeId="COPY" projectCommon.partId="mcu.8051.efm8.ub2.efm8ub20f64g-a-qfp48" projectCommon.sdkId="com.silabs.sdk.8051:4.1.6._-963069324"/>
+	<storageModule moduleId="com.silabs.ss.framework.ide.project.core.cpp" project.generation="43" projectCommon.boardIds="brd5001a:0.0.0.A01" projectCommon.buildArtifactType="EXE" projectCommon.importModeId="COPY" projectCommon.partId="mcu.8051.efm8.ub2.efm8ub20f64g-a-qfp48" projectCommon.sdkId="com.silabs.sdk.8051:4.1.6._-963069324"/>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="EFM8-USB-MIDI.com.silabs.ss.framework.ide.project.core.cdt.cdtMbsProjectType.48563198" name="SLS CDT Project" projectType="com.silabs.ss.framework.ide.project.core.cdt.cdtMbsProjectType"/>
 	</storageModule>

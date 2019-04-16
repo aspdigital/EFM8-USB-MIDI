@@ -35,16 +35,14 @@ void SiLabs_Startup(void) {
 	// [SiLabs Startup]$
 }
 
-
 /*
  * Structure which holds joystick and button-press information.
  * Yes, it's an HID report structure.
  */
-struct joystickReportData
-{
-  uint8_t Button; /**< Button mask for currently pressed buttons in the game pad. */
-  uint8_t X;
-  uint8_t Y;
+struct joystickReportData {
+	uint8_t Button; /**< Button mask for currently pressed buttons in the game pad. */
+	uint8_t X;
+	uint8_t Y;
 } joystickReportData;
 
 //-----------------------------------------------------------------------------
@@ -55,34 +53,25 @@ struct joystickReportData
 //               status.
 //
 //-----------------------------------------------------------------------------
-void CreateJoystickReport(void)
-{
-  uint8_t joyStatus = Joystick_GetStatus();
+void CreateJoystickReport(void) {
+	uint8_t joyStatus = Joystick_GetStatus();
 
-  memset(&joystickReportData, 0, sizeof(joystickReportData));
+	memset(&joystickReportData, 0, sizeof(joystickReportData));
 
-  if (joyStatus & JOY_UP)
-  {
-    joystickReportData.Y = 0xFF;
-  }
-  else if (joyStatus & JOY_DOWN)
-  {
-    joystickReportData.Y = 0x01;
-  }
+	if (joyStatus & JOY_UP) {
+		joystickReportData.Y = 0x7F;
+	} else if (joyStatus & JOY_DOWN) {
+		joystickReportData.Y = 0x01;
+	}
 
-  if (joyStatus & JOY_LEFT)
-  {
-    joystickReportData.X = 0xFF;
-  }
-  else if (joyStatus & JOY_RIGHT)
-  {
-    joystickReportData.X = 0x01;
-  }
+	if (joyStatus & JOY_LEFT) {
+		joystickReportData.X = 0x01;
+	} else if (joyStatus & JOY_RIGHT) {
+		joystickReportData.X = 0x7F;
+	}
 
-  joystickReportData.Button = joyStatus & BUTTON_MASK;
+	joystickReportData.Button = joyStatus & BUTTON_MASK;
 }
-
-
 
 //-----------------------------------------------------------------------------
 // main() Routine
@@ -93,12 +82,12 @@ int main(void) {
 	uint16_t lastTick;
 	MIDI_Event_Packet_t mep;
 	bit LBState;
+	bit RBState;
+	bool usbIntsEnabled;
 
 	// Call hardware initialization routine
 	enter_DefaultMode_from_RESET();
 
-	// turn on the blue LED so we know the fucking thing is alive.
-	PCA0CPH1 = 255;
 	DISP_Init();
 	lastTick = GetTickCount();
 
@@ -108,10 +97,8 @@ int main(void) {
 		DISP_WriteLine(4 + y, line);
 	}
 
-	// clear these, we don't use them for now.
-	mep.byte1 = 0x63; 	// arbitrary controller
-	mep.byte3 = 0x00;
 	LBState = 0;
+	RBState = 0;
 
 	while (1) {
 // $[Generated Run-time code]
@@ -127,13 +114,60 @@ int main(void) {
 
 		// for now, if a button was pressed, send a Control Change message on MIDI channel 3.
 		if (joystickReportData.Button == LEFT_BUTTON) {
-			mep.event = 0x2B;		// CC on channel 3
+			mep.event = 0x0B;		// CC on channel 1
+			mep.byte1 = 0xB0;
+			mep.byte2 = 80;
 			if (LBState == 0)
-				mep.byte2 = 0x7F;		// full
+				mep.byte3 = 0x7F;		// full
 			else
-				mep.byte2 = 0x00;
+				mep.byte3 = 0x00;
 			LBState = !LBState;
-			// USBD_Write(EP1IN, (uint8_t *) &mep, sizeof(mep), true);
-		}
+			usbIntsEnabled = USB_GetIntsEnabled();
+			USB_DisableInts();
+			USBD_Write(EP1IN, (uint8_t *) &mep, sizeof(mep), true);
+			if (usbIntsEnabled)
+				USB_EnableInts();
+		} // Left Button
+
+		if (joystickReportData.Button == RIGHT_BUTTON) {
+			mep.event = 0x0B;		// CC on channel 1
+			mep.byte1 = 0xB0;		// CC on channel 1
+			mep.byte2 = 81;
+			if (RBState == 0)
+				mep.byte3 = 0x7F;		// full
+			else
+				mep.byte3 = 0x00;
+			RBState = !RBState;
+			usbIntsEnabled = USB_GetIntsEnabled();
+			USB_DisableInts();
+			USBD_Write(EP1IN, (uint8_t *) &mep, sizeof(mep), true);
+			if (usbIntsEnabled)
+				USB_EnableInts();
+		} // Right Button
+
+		if (joystickReportData.X) {
+			mep.event = 0x0B;		// CC on channel 1
+			mep.byte1 = 0xB0;		// CC on channel 1
+			mep.byte2 = 82;
+			mep.byte3 = joystickReportData.X;
+			usbIntsEnabled = USB_GetIntsEnabled();
+			USB_DisableInts();
+			USBD_Write(EP1IN, (uint8_t *) &mep, sizeof(mep), true);
+			if (usbIntsEnabled)
+				USB_EnableInts();
+		} // Joystick X
+
+		if (joystickReportData.Y) {
+			mep.event = 0x0B;		// CC on channel 1
+			mep.byte1 = 0xB0;		// CC on channel 1
+			mep.byte2 = 83;
+			mep.byte3 = joystickReportData.Y;
+			usbIntsEnabled = USB_GetIntsEnabled();
+			USB_DisableInts();
+			USBD_Write(EP1IN, (uint8_t *) &mep, sizeof(mep), true);
+			if (usbIntsEnabled)
+				USB_EnableInts();
+		} // Joystick X
+
 	} // main while(1) loop
 } // main()
