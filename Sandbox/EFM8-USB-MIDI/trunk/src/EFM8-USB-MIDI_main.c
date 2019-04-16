@@ -19,6 +19,8 @@
 #include "disp.h"
 #include "render.h"
 #include "tick.h"
+#include "joybutton.h"
+#include "usb_midi.h"
 
 //-----------------------------------------------------------------------------
 // SiLabs_Startup() Routine
@@ -33,6 +35,55 @@ void SiLabs_Startup(void) {
 	// [SiLabs Startup]$
 }
 
+
+/*
+ * Structure which holds joystick and button-press information.
+ * Yes, it's an HID report structure.
+ */
+struct joystickReportData
+{
+  uint8_t Button; /**< Button mask for currently pressed buttons in the game pad. */
+  uint8_t X;
+  uint8_t Y;
+} joystickReportData;
+
+//-----------------------------------------------------------------------------
+// CreateJoystickReport() Routine
+// ----------------------------------------------------------------------------
+//
+// Description - Generate joystick status report according Joystick and Button
+//               status.
+//
+//-----------------------------------------------------------------------------
+void CreateJoystickReport(void)
+{
+  uint8_t joyStatus = Joystick_GetStatus();
+
+  memset(&joystickReportData, 0, sizeof(joystickReportData));
+
+  if (joyStatus & JOY_UP)
+  {
+    joystickReportData.Y = 0xFF;
+  }
+  else if (joyStatus & JOY_DOWN)
+  {
+    joystickReportData.Y = 0x01;
+  }
+
+  if (joyStatus & JOY_LEFT)
+  {
+    joystickReportData.X = 0xFF;
+  }
+  else if (joyStatus & JOY_RIGHT)
+  {
+    joystickReportData.X = 0x01;
+  }
+
+  joystickReportData.Button = joyStatus & BUTTON_MASK;
+}
+
+
+
 //-----------------------------------------------------------------------------
 // main() Routine
 // ----------------------------------------------------------------------------
@@ -40,6 +91,9 @@ int main(void) {
 	static SI_SEGMENT_VARIABLE(line[DISP_BUF_SIZE], uint8_t, RENDER_LINE_SEG);
 	uint8_t y;
 	uint16_t lastTick;
+	MIDI_Event_Packet_t mep;
+	bit LBState;
+
 	// Call hardware initialization routine
 	enter_DefaultMode_from_RESET();
 
@@ -54,6 +108,11 @@ int main(void) {
 		DISP_WriteLine(4 + y, line);
 	}
 
+	// clear these, we don't use them for now.
+	mep.byte1 = 0x63; 	// arbitrary controller
+	mep.byte3 = 0x00;
+	LBState = 0;
+
 	while (1) {
 // $[Generated Run-time code]
 // [Generated Run-time code]$
@@ -63,5 +122,18 @@ int main(void) {
 			DISP_WriteLine(4 + y, line);
 		}
 
-	}
-}
+		// check the joystick and buttons for changes.
+		CreateJoystickReport();
+
+		// for now, if a button was pressed, send a Control Change message on MIDI channel 3.
+		if (joystickReportData.Button == LEFT_BUTTON) {
+			mep.event = 0x2B;		// CC on channel 3
+			if (LBState == 0)
+				mep.byte2 = 0x7F;		// full
+			else
+				mep.byte2 = 0x00;
+			LBState = !LBState;
+			// USBD_Write(EP1IN, (uint8_t *) &mep, sizeof(mep), true);
+		}
+	} // main while(1) loop
+} // main()
