@@ -25,35 +25,27 @@
 //-----------------------------------------------------------------------------
 // Variables
 //-----------------------------------------------------------------------------
+extern bit newInEvent;
 
 //-----------------------------------------------------------------------------
 // Functions
 //-----------------------------------------------------------------------------
 
 void USBD_SofCb(uint16_t sofNr) {
-	if (sofNr == 1) {
-		// turn on the blue LED so we know the fucking thing is alive.
-		if (PCA0CPH1 == 255) {
-			PCA0CPH1 = 0;
-		} else if (PCA0CPH1 == 0) {
-			PCA0CPH1 = 255;
-		}
-	}
+	UNREFERENCED_ARGUMENT(sofNr);
+	P3_B4 = ~P3_B4;
 }
 
 uint16_t USBD_XferCompleteCb(uint8_t epAddr, USB_Status_TypeDef status,
 		uint16_t xferred, uint16_t remaining) {
-	UNREFERENCED_ARGUMENT(epAddr);
-	UNREFERENCED_ARGUMENT(status);
-	UNREFERENCED_ARGUMENT(xferred);
-	UNREFERENCED_ARGUMENT(remaining);
-	if (RGB_CEX_GREEN == 0) {
-		RGB_CEX_GREEN = 255;
-	} else if (RGB_CEX_GREEN == 255) {
-		RGB_CEX_GREEN = 0;
-	}
-	P3_B4 = ~P3_B4;
+	  UNREFERENCED_ARGUMENT(xferred);
+	  UNREFERENCED_ARGUMENT(remaining);
 
+	if (status == USB_STATUS_OK) {
+		if (epAddr == 2) {
+			newInEvent = 1;
+		}
+	}
 	return 0;
 }
 

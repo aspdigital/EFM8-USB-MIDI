@@ -14,13 +14,20 @@
 // $[Generated Includes]
 #include "efm8_usb.h"
 // [Generated Includes]$
-//#include "rgb_led.h"
+#include "rgb_led.h"
 #include "bsp.h"
 #include "disp.h"
 #include "render.h"
 #include "tick.h"
 #include "joybutton.h"
 #include "usb_midi.h"
+
+/*
+ * Global buffer for the OUT endpoint.
+ */
+SI_SEGMENT_VARIABLE(midiInMsg, MIDI_Event_Packet_t, SI_SEG_XDATA);
+// flag indicating a new event.
+bit newInEvent;
 
 //-----------------------------------------------------------------------------
 // SiLabs_Startup() Routine
@@ -84,10 +91,11 @@ int main(void) {
 	bit LBState;
 	bit RBState;
 	bool usbIntsEnabled;
+	USB_Status_TypeDef ReadStatus = USB_STATUS_OK;
 
 	// Call hardware initialization routine
 	enter_DefaultMode_from_RESET();
-
+#if 0
 	DISP_Init();
 	lastTick = GetTickCount();
 
@@ -96,19 +104,22 @@ int main(void) {
 		RENDER_StrLine(line, 3, y, "TEST");
 		DISP_WriteLine(4 + y, line);
 	}
+#endif
 
 	LBState = 0;
 	RBState = 0;
+	newInEvent = 0;
 
 	while (1) {
 // $[Generated Run-time code]
 // [Generated Run-time code]$
+#if 0
 		for (y = 0; y < FONT_HEIGHT; y++) {
 			RENDER_ClrLine (line);
 			RENDER_StrLine(line, 3, y, "TEST");
 			DISP_WriteLine(4 + y, line);
 		}
-
+#endif
 		// check the joystick and buttons for changes.
 		CreateJoystickReport();
 
@@ -168,6 +179,45 @@ int main(void) {
 			if (usbIntsEnabled)
 				USB_EnableInts();
 		} // Joystick X
+#if 0
+		// Try to read from the OUT endpoint.
+		if (ReadStatus == USB_STATUS_OK && USBD_GetUsbState() == USBD_STATE_CONFIGURED) {
+			ReadStatus = USBD_Read(
+					EP1OUT,
+					(uint8_t *) &midiInMsg,
+					sizeof(MIDI_Event_Packet_t), // midi messages are four bytes
+					true);
+		}
+
+		// did we get a new event?
+		if (newInEvent) {
+			newInEvent = 0;
+			if (midiInMsg.event == 0x0B) {
+				switch (midiInMsg.byte2) {
+				case 80 : // left button
+					RGB_CEX_GREEN = midiInMsg.byte3 << 1;
+					RGB_CEX_RED = 0;
+					RGB_CEX_BLUE = 0;
+					break;
+				case 81 : // right button
+					RGB_CEX_GREEN = 0;
+					RGB_CEX_RED = midiInMsg.byte3 << 1;
+					RGB_CEX_BLUE = 0;
+					break;
+				case 82 : // joystick X
+					RGB_CEX_GREEN = 0;
+					RGB_CEX_RED = 0;
+					RGB_CEX_BLUE = midiInMsg.byte3 << 1;
+					break;
+				case 83 : // joystick Y
+					RGB_CEX_GREEN = midiInMsg.byte3 << 1;
+					RGB_CEX_RED = 0;
+					RGB_CEX_BLUE = midiInMsg.byte3 << 1;
+					break;
+				} // switch
+			} // event
+		} // newInEvent
+#endif
 
 	} // main while(1) loop
 } // main()
