@@ -90,11 +90,11 @@
 // -----------------------------------------------------------------------------
 // $[Callback Functions]
 #define SLAB_USB_HANDLER_CB                    0
-#define SLAB_USB_IS_SELF_POWERED_CB            1
+#define SLAB_USB_IS_SELF_POWERED_CB            0
 #define SLAB_USB_RESET_CB                      0
-#define SLAB_USB_SETUP_CMD_CB                  1
+#define SLAB_USB_SETUP_CMD_CB                  0
 #define SLAB_USB_SOF_CB                        1
-#define SLAB_USB_STATE_CHANGE_CB               1
+#define SLAB_USB_STATE_CHANGE_CB               0
 // [Callback Functions]$
 
 // -----------------------------------------------------------------------------

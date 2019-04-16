@@ -33,8 +33,6 @@
     <property object="P0.1" propertyId="ports.settings.iomode" value="Digital Push-Pull Output"/>
     <property object="P0.1" propertyId="ports.settings.outputmode" value="Push-pull"/>
     <property object="P0.1" propertyId="ports.settings.skip" value="Skipped"/>
-    <property object="P0.2" propertyId="ports.settings.iomode" value="Digital Push-Pull Output"/>
-    <property object="P0.2" propertyId="ports.settings.outputmode" value="Push-pull"/>
     <property object="P0.2" propertyId="ports.settings.skip" value="Skipped"/>
     <property object="P0.3" propertyId="ports.settings.skip" value="Skipped"/>
     <property object="P0.4" propertyId="ports.settings.skip" value="Skipped"/>
@@ -169,10 +167,7 @@
     <property object="USBLIB_0" propertyId="interfaces.interface1.interfacestring" value="MIDI Streaming"/>
     <property object="USBLIB_0" propertyId="interfaces.interface1.interfacesubclass" value="3"/>
     <property object="USBLIB_0" propertyId="interfaces.interfaceparameters.numberofinterfaces" value="2"/>
-    <property object="USBLIB_0" propertyId="library.callbackfunctions.selfpoweredcallback" value="Enabled"/>
-    <property object="USBLIB_0" propertyId="library.callbackfunctions.setupcommandcallback" value="Enabled"/>
     <property object="USBLIB_0" propertyId="library.callbackfunctions.startofframecallback" value="Enabled"/>
-    <property object="USBLIB_0" propertyId="library.callbackfunctions.statechangecallback" value="Enabled"/>
     <property object="USBLIB_0" propertyId="library.libraryconfiguration.clockrecovery" value="Enabled"/>
     <property object="USBLIB_0" propertyId="library.powersavingmode.enteronvbusoff" value="Enabled"/>
     <property object="USBLIB_0" propertyId="library.powersavingmode.powersavemode" value="( USB_PWRSAVE_MODE_ONVBUSOFF )"/>

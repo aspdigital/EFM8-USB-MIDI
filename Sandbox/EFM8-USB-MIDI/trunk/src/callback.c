@@ -30,39 +30,15 @@
 // Functions
 //-----------------------------------------------------------------------------
 
-void USBD_EnterHandler(void) {
-
-}
-
-void USBD_ExitHandler(void) {
-
-}
-
-void USBD_ResetCb(void) {
-
-}
-
 void USBD_SofCb(uint16_t sofNr) {
-	UNREFERENCED_ARGUMENT(sofNr);
-}
-
-void USBD_DeviceStateChangeCb(USBD_State_TypeDef oldState,
-		USBD_State_TypeDef newState) {
-	UNREFERENCED_ARGUMENT(oldState);
-	UNREFERENCED_ARGUMENT(newState);
-
-}
-
-bool USBD_IsSelfPoweredCb(void) {
-
-	return true;
-}
-
-USB_Status_TypeDef USBD_SetupCmdCb(
-		SI_VARIABLE_SEGMENT_POINTER(setup, USB_Setup_TypeDef, MEM_MODEL_SEG)) {
-	USB_Status_TypeDef retVal = USB_STATUS_REQ_UNHANDLED;
-	UNREFERENCED_ARGUMENT(setup);
-	return retVal;
+	if (sofNr == 1) {
+		// turn on the blue LED so we know the fucking thing is alive.
+		if (PCA0CPH1 == 255) {
+			PCA0CPH1 = 0;
+		} else if (PCA0CPH1 == 0) {
+			PCA0CPH1 = 255;
+		}
+	}
 }
 
 uint16_t USBD_XferCompleteCb(uint8_t epAddr, USB_Status_TypeDef status,
@@ -71,6 +47,11 @@ uint16_t USBD_XferCompleteCb(uint8_t epAddr, USB_Status_TypeDef status,
 	UNREFERENCED_ARGUMENT(status);
 	UNREFERENCED_ARGUMENT(xferred);
 	UNREFERENCED_ARGUMENT(remaining);
+	if (RGB_CEX_GREEN == 0) {
+		RGB_CEX_GREEN = 255;
+	} else if (RGB_CEX_GREEN == 255) {
+		RGB_CEX_GREEN = 0;
+	}
 	P3_B4 = ~P3_B4;
 
 	return 0;
