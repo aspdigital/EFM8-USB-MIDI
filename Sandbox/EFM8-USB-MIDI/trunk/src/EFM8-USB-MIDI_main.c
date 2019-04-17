@@ -84,14 +84,13 @@ void CreateJoystickReport(void) {
 // main() Routine
 // ----------------------------------------------------------------------------
 int main(void) {
-	static SI_SEGMENT_VARIABLE(line[DISP_BUF_SIZE], uint8_t, RENDER_LINE_SEG);
-	uint8_t y;
-	uint16_t lastTick;
+//	static SI_SEGMENT_VARIABLE(line[DISP_BUF_SIZE], uint8_t, RENDER_LINE_SEG);
+//	uint8_t y;
+//	uint16_t lastTick;
 	MIDI_Event_Packet_t mep;
 	bit LBState;
 	bit RBState;
 	bool usbIntsEnabled;
-	USB_Status_TypeDef ReadStatus = USB_STATUS_OK;
 
 	// Call hardware initialization routine
 	enter_DefaultMode_from_RESET();
@@ -179,10 +178,10 @@ int main(void) {
 			if (usbIntsEnabled)
 				USB_EnableInts();
 		} // Joystick X
-#if 0
+#if 1
 		// Try to read from the OUT endpoint.
-		if (ReadStatus == USB_STATUS_OK && USBD_GetUsbState() == USBD_STATE_CONFIGURED) {
-			ReadStatus = USBD_Read(
+		if (!USBD_EpIsBusy(EP1OUT)) {
+			 USBD_Read(
 					EP1OUT,
 					(uint8_t *) &midiInMsg,
 					sizeof(MIDI_Event_Packet_t), // midi messages are four bytes
