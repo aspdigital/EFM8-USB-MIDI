@@ -127,10 +127,15 @@ int main(void) {
 			mep.event = 0x0B;		// CC on channel 1
 			mep.byte1 = 0xB0;
 			mep.byte2 = 80;
-			if (LBState == 0)
+			RGB_CEX_BLUE = 0x00;
+			RGB_CEX_GREEN = 0x00;
+			if (LBState == 0) {
+				RGB_CEX_RED = 0x7F;
 				mep.byte3 = 0x7F;		// full
-			else
+			} else {
+				RGB_CEX_RED = 0x00;
 				mep.byte3 = 0x00;
+			}
 			LBState = !LBState;
 			usbIntsEnabled = USB_GetIntsEnabled();
 			USB_DisableInts();
@@ -143,10 +148,15 @@ int main(void) {
 			mep.event = 0x0B;		// CC on channel 1
 			mep.byte1 = 0xB0;		// CC on channel 1
 			mep.byte2 = 81;
-			if (RBState == 0)
+			RGB_CEX_BLUE = 0x00;
+			RGB_CEX_RED = 0x00;
+			if (RBState == 0) {
+				RGB_CEX_GREEN = 0x7F;
 				mep.byte3 = 0x7F;		// full
-			else
+			} else {
+				RGB_CEX_GREEN = 0x00;
 				mep.byte3 = 0x00;
+			}
 			RBState = !RBState;
 			usbIntsEnabled = USB_GetIntsEnabled();
 			USB_DisableInts();
@@ -156,10 +166,13 @@ int main(void) {
 		} // Right Button
 
 		if (joystickReportData.X) {
+			RGB_CEX_RED = 0x00;
+			RGB_CEX_GREEN = 0x00;
 			mep.event = 0x0B;		// CC on channel 1
 			mep.byte1 = 0xB0;		// CC on channel 1
 			mep.byte2 = 82;
 			mep.byte3 = joystickReportData.X;
+			RGB_CEX_BLUE = joystickReportData.X;
 			usbIntsEnabled = USB_GetIntsEnabled();
 			USB_DisableInts();
 			USBD_Write(EP1IN, (uint8_t *) &mep, sizeof(mep), true);
@@ -168,10 +181,13 @@ int main(void) {
 		} // Joystick X
 
 		if (joystickReportData.Y) {
+			RGB_CEX_RED = 0x00;
+			RGB_CEX_GREEN = 0x00;
 			mep.event = 0x0B;		// CC on channel 1
 			mep.byte1 = 0xB0;		// CC on channel 1
 			mep.byte2 = 83;
 			mep.byte3 = joystickReportData.Y;
+			RGB_CEX_BLUE = joystickReportData.Y;
 			usbIntsEnabled = USB_GetIntsEnabled();
 			USB_DisableInts();
 			USBD_Write(EP1IN, (uint8_t *) &mep, sizeof(mep), true);
@@ -180,7 +196,7 @@ int main(void) {
 		} // Joystick X
 #if 1
 		// Try to read from the OUT endpoint.
-		if (!USBD_EpIsBusy(EP1OUT)) {
+		if (!USBD_EpIsBusy(EP1OUT) && (USBD_GetUsbState() == USBD_STATE_CONFIGURED)) {
 			 USBD_Read(
 					EP1OUT,
 					(uint8_t *) &midiInMsg,
@@ -191,7 +207,7 @@ int main(void) {
 		// did we get a new event?
 		if (newInEvent) {
 			newInEvent = 0;
-			if (midiInMsg.event == 0x0B) {
+			if (midiInMsg.byte1 == 0xB0) {
 				switch (midiInMsg.byte2) {
 				case 80 : // left button
 					RGB_CEX_GREEN = midiInMsg.byte3 << 1;
@@ -209,7 +225,7 @@ int main(void) {
 					RGB_CEX_BLUE = midiInMsg.byte3 << 1;
 					break;
 				case 83 : // joystick Y
-					RGB_CEX_GREEN = midiInMsg.byte3 << 1;
+					RGB_CEX_GREEN = 0; //midiInMsg.byte3 << 1;
 					RGB_CEX_RED = 0;
 					RGB_CEX_BLUE = midiInMsg.byte3 << 1;
 					break;
