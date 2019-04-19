@@ -42,6 +42,15 @@ void SiLabs_Startup(void) {
 	// [SiLabs Startup]$
 }
 
+/* UART callbacks. UART1 is for the MIDI port. Perhaps this should be in a midi directory? */
+void UART1_transmitCompleteCb(void) {
+
+}
+
+void UART1_receiveCompleteCb(void) {
+
+}
+
 /*
  * Structure which holds joystick and button-press information.
  * Yes, it's an HID report structure.
@@ -196,10 +205,8 @@ int main(void) {
 		} // Joystick X
 #if 1
 		// Try to read from the OUT endpoint.
-		if (!USBD_EpIsBusy(EP1OUT) && (USBD_GetUsbState() == USBD_STATE_CONFIGURED)) {
-			 USBD_Read(
-					EP1OUT,
-					(uint8_t *) &midiInMsg,
+		if (!USBD_EpIsBusy(EP1OUT)) {
+			USBD_Read(EP1OUT, (uint8_t *) &midiInMsg,
 					sizeof(MIDI_Event_Packet_t), // midi messages are four bytes
 					true);
 		}
@@ -209,22 +216,22 @@ int main(void) {
 			newInEvent = 0;
 			if (midiInMsg.byte1 == 0xB0) {
 				switch (midiInMsg.byte2) {
-				case 80 : // left button
+				case 80: // left button
 					RGB_CEX_GREEN = midiInMsg.byte3 << 1;
 					RGB_CEX_RED = 0;
 					RGB_CEX_BLUE = 0;
 					break;
-				case 81 : // right button
+				case 81: // right button
 					RGB_CEX_GREEN = 0;
 					RGB_CEX_RED = midiInMsg.byte3 << 1;
 					RGB_CEX_BLUE = 0;
 					break;
-				case 82 : // joystick X
+				case 82: // joystick X
 					RGB_CEX_GREEN = 0;
 					RGB_CEX_RED = 0;
 					RGB_CEX_BLUE = midiInMsg.byte3 << 1;
 					break;
-				case 83 : // joystick Y
+				case 83: // joystick Y
 					RGB_CEX_GREEN = 0; //midiInMsg.byte3 << 1;
 					RGB_CEX_RED = 0;
 					RGB_CEX_BLUE = midiInMsg.byte3 << 1;
