@@ -46,7 +46,6 @@ extern void enter_DefaultMode_from_RESET(void) {
 	TIMER16_3_enter_DefaultMode_from_RESET();
 	TIMER_SETUP_0_enter_DefaultMode_from_RESET();
 	SPI_0_enter_DefaultMode_from_RESET();
-	UART_0_enter_DefaultMode_from_RESET();
 	UARTE_1_enter_DefaultMode_from_RESET();
 	INTERRUPT_0_enter_DefaultMode_from_RESET();
 	USBLIB_0_enter_DefaultMode_from_RESET();
@@ -243,9 +242,9 @@ extern void UARTE_1_enter_DefaultMode_from_RESET(void) {
 
 	// $[SBRLL1 - UART1 Baud Rate Generator Low Byte]
 	/***********************************************************************
-	 - UART1 Baud Rate Reload Low = 0xF8
+	 - UART1 Baud Rate Reload Low = 0xE0
 	 ***********************************************************************/
-	SBRLL1 = (0xF8 << SBRLL1_BRL__SHIFT);
+	SBRLL1 = (0xE0 << SBRLL1_BRL__SHIFT);
 	// [SBRLL1 - UART1 Baud Rate Generator Low Byte]$
 
 	// $[SCON1 - UART1 Serial Port Control]
@@ -398,6 +397,11 @@ extern void PBCFG_0_enter_DefaultMode_from_RESET(void) {
 	// [XBR0 - Port I/O Crossbar 0]$
 
 	// $[XBR2 - Port I/O Crossbar 2]
+	/***********************************************************************
+	 - UART1 TX, RX routed to Port pins
+	 - SMBus1 I/O unavailable at Port pins
+	 ***********************************************************************/
+	XBR2 = XBR2_URT1E__ENABLED | XBR2_SMB1E__DISABLED;
 	// [XBR2 - Port I/O Crossbar 2]$
 
 }

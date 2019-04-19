@@ -16,6 +16,7 @@
     <property object="CLOCK_0" propertyId="clock.clockselect.usbclk" value="48.000 MHz"/>
     <property object="CROSSBAR0" propertyId="xbar0.pca0.cex" value="CEX0, CEX1, and CEX2"/>
     <property object="CROSSBAR0" propertyId="xbar0.spi0.clockdata" value="Enabled"/>
+    <property object="CROSSBAR0" propertyId="xbar0.uart1.data" value="Enabled"/>
     <property object="DefaultMode" propertyId="mode.diagramLocation" value="100, 100"/>
     <property object="HFOSC_0" propertyId="ABPeripheral.included" value="true"/>
     <property object="HFOSC_0" propertyId="hfosc.highfrequencyoscillatorcontrol.hfoscdividedfrequency" value="48.000 MHz"/>
@@ -138,13 +139,12 @@
     <property object="TIMER_SETUP_0" propertyId="timer_setup.timer0.timerswitch1:runcontrol" value="Start"/>
     <property object="TIMER_SETUP_0" propertyId="timer_setup.timer01control.timer0runcontrol" value="Start"/>
     <property object="UARTE_1" propertyId="ABPeripheral.included" value="true"/>
-    <property object="UARTE_1" propertyId="uarte.baudrategeneratorcontrol.actualbaudrate" value="125000"/>
+    <property object="UARTE_1" propertyId="uarte.baudrategeneratorcontrol.actualbaudrate" value="31250"/>
     <property object="UARTE_1" propertyId="uarte.baudrategeneratorcontrol.baudratereloadhigh" value="255"/>
-    <property object="UARTE_1" propertyId="uarte.baudrategeneratorcontrol.baudratereloadlow" value="248"/>
+    <property object="UARTE_1" propertyId="uarte.baudrategeneratorcontrol.baudratereloadlow" value="224"/>
     <property object="UARTE_1" propertyId="uarte.baudrategeneratorcontrol.enablebaudrategenerator" value="Enabled"/>
-    <property object="UARTE_1" propertyId="uarte.baudrategeneratorcontrol.expectedbaudrate" value="115200"/>
+    <property object="UARTE_1" propertyId="uarte.baudrategeneratorcontrol.expectedbaudrate" value="31250"/>
     <property object="UARTE_1" propertyId="uarte.serialportcontrol.enablereceive" value="Enabled"/>
-    <property object="UART_0" propertyId="ABPeripheral.included" value="true"/>
     <property object="UART_0" propertyId="uart.serialportcontrol.enablereceive" value="Enabled"/>
     <property object="USBLIB_0" propertyId="ABPeripheral.included" value="true"/>
     <property object="USBLIB_0" propertyId="device.deviceproperties.bmaxpacketsize" value="64"/>
