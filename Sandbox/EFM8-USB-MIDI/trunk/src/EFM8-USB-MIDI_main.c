@@ -6,6 +6,30 @@
 // or they will be overwritten!!
 //=========================================================
 
+/*
+ * NOTES!
+ *
+ * MIDI ports are the hardware or virtual connections.
+ * This design has two in and two out ports.
+ * Port 0 is the virtual port we use to control the hardware (for IN) and send back
+ * 	button-and-knob changes.
+ * Port 1 is the physical port connected to UART1.
+ */
+
+/*
+ * Handling physical-port access. This uses the SiLab's Uart1 driver, and this
+ * should probably be changed to something more general.
+ *
+ * USB MIDI OUT messages for port 1 are routed to UART1 for transmit.
+ * The event part of the messages is stripped off and the three data bytes are
+ * loaded into the UART's transmit buffer. The callback exists but isn't used
+ * because it's not necessary.
+ *
+ * Messages received on physical port 1 in have an event byte added and a USB
+ * MIDI message is built from what was received, and that message is written
+ * to the MIDI bulk IN endpoint.
+ */
+
 //-----------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------
