@@ -296,6 +296,15 @@ extern void INTERRUPT_0_enter_DefaultMode_from_RESET(void) {
 	// [IP - Interrupt Priority]$
 
 	// $[EIE2 - Extended Interrupt Enable 2]
+	/***********************************************************************
+	 - Disable all SMB1 interrupts
+	 - Disable Timer 4interrupts
+	 - Disable Timer 5 interrupts
+	 - Enable UART1 interrupt
+	 - Disable all VBUS interrupts
+	 ***********************************************************************/
+	EIE2 = EIE2_ESMB1__DISABLED | EIE2_ET4__DISABLED | EIE2_ET5__DISABLED
+			| EIE2_ES1__ENABLED | EIE2_EVBUS__DISABLED;
 	// [EIE2 - Extended Interrupt Enable 2]$
 
 	// $[EIP2 - Extended Interrupt Priority 2]

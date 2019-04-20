@@ -12,4 +12,8 @@
 #define EFM8PDL_SPI0_USE_FIFO             0
 #define EFM8PDL_SPI0_TX_SEGTYPE           SI_SEG_PDATA
 
+#define EFM8PDL_UART1_USE_STDIO         0
+#define EFM8PDL_UART1_USE_ERR_CALLBACK  0
+#define EFM8PDL_UART1_USE_BUFFER        0
+
 #endif // __EFM8_CONFIG_H__

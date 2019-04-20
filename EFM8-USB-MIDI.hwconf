@@ -25,6 +25,7 @@
     <property object="INTERRUPT_0" propertyId="ABPeripheral.included" value="true"/>
     <property object="INTERRUPT_0" propertyId="interrupt.extendedinterruptenable1.enabletimer3interrupt" value="Enabled"/>
     <property object="INTERRUPT_0" propertyId="interrupt.extendedinterruptenable1.enableusbusb0interrupt" value="Enabled"/>
+    <property object="INTERRUPT_0" propertyId="interrupt.extendedinterruptenable2.enableuart1interrupt" value="Enabled"/>
     <property object="INTERRUPT_0" propertyId="interrupt.interruptenable.enableallinterrupts" value="Enabled"/>
     <property object="INTERRUPT_0" propertyId="interrupt.interruptenable.enablespi0interrupt" value="Enabled"/>
     <property object="INTERRUPT_0" propertyId="interrupt.interruptenable.enabletimer2interrupt" value="Enabled"/>
