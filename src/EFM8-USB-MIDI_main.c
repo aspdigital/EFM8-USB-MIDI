@@ -146,6 +146,8 @@ int main(void) {
 	RBState = 0;
 	newInEvent = 0;
 
+	MIDIUART_init();
+
 	while (1) {
 // $[Generated Run-time code]
 // [Generated Run-time code]$
