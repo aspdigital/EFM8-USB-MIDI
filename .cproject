@@ -53,20 +53,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/bsp/efm8_memory_lcd/inc/graphics}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/bsp/efm8_joystick}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/lib/bsp/efm8_rgb_led}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${StudioSdkPath}/Lib/efm8_usb/inc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${StudioSdkPath}/Lib/efm8_assert&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${StudioSdkPath}/Device/shared/si8051Base&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${StudioSdkPath}/Device/EFM8UB2/inc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${StudioSdkPath}/Lib/efm8_usbc/lib_kernel/inc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${StudioSdkPath}/Lib/efm8_usbc/lib_usbc_pd/inc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${StudioSdkPath}/kits/common/bsp&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${StudioSdkPath}/kits/EFM8UB2_SLSTK2001A/config&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${StudioSdkPath}/kits/common/drivers/efm8_memory_lcd/inc&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${StudioSdkPath}/kits/common/drivers/efm8_memory_lcd/inc/graphics&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${StudioSdkPath}/kits/common/drivers/efm8_memory_lcd/inc/config&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${StudioSdkPath}/kits/common/drivers/efm8_joystick&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${StudioSdkPath}/kits/common/drivers/efm8_rgb_led&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${StudioSdkPath}/Device/EFM8UB2/peripheral_driver/inc&quot;"/>
 								</option>
 								<option id="com.silabs.ide.si8051.keil.compiler.category.misc.extraflags.795830907" name="Additional Flags" superClass="com.silabs.ide.si8051.keil.compiler.category.misc.extraflags" value="OA" valueType="string"/>
 								<option id="com.silabs.ide.si8051.keil.compiler.category.general.code.855986877" name="Code size" superClass="com.silabs.ide.si8051.keil.compiler.category.general.code" value="com.silabs.ide.si8051.keil.compiler.category.general.code.large" valueType="enumerated"/>
@@ -97,7 +85,7 @@
 								<inputType id="com.silabs.ide.si8051.keil.assembler.inputType.92957540" superClass="com.silabs.ide.si8051.keil.assembler.inputType"/>
 							</tool>
 							<tool command="LX51" id="com.silabs.ide.si8051.keil.toolchain.linker.1021111509" name="Keil 8051 Linker" superClass="com.silabs.ide.si8051.keil.toolchain.linker">
-								<option id="com.silabs.ide.si8051.keil.linker.category.general.use_control_file.412319762" name="Use linker control file" superClass="com.silabs.ide.si8051.keil.linker.category.general.use_control_file" value="true" valueType="boolean"/>
+								<option id="com.silabs.ide.si8051.keil.linker.category.general.use_control_file.412319762" name="Use linker control file" superClass="com.silabs.ide.si8051.keil.linker.category.general.use_control_file" value="false" valueType="boolean"/>
 								<option id="com.silabs.ide.si8051.keil.linker.category.ordering.selection.1146244834" name="Linker input ordering" superClass="com.silabs.ide.si8051.keil.linker.category.ordering.selection" value="./src/EFM8-USB-MIDI_main.OBJ;./src/InitDevice.OBJ;./src/SILABS_STARTUP.OBJ;./src/callback.OBJ;./src/descriptors.OBJ;./lib/efm8_usb/src/efm8_usbd.OBJ;./lib/efm8_usb/src/efm8_usbdch9.OBJ;./lib/efm8_usb/src/efm8_usbdep.OBJ;./lib/efm8_usb/src/efm8_usbdint.OBJ;./lib/efm8_assert/assert.OBJ;./src/joybutton.OBJ;./lib/efm8ub2/peripheralDrivers/src/adc_0.OBJ;./lib/efm8ub2/peripheralDrivers/src/spi_0.OBJ;./lib/efm8ub2/bsp/efm8_memory_lcd/src/spi.OBJ;./lib/efm8ub2/bsp/efm8_memory_lcd/src/tick.OBJ;./lib/bsp/efm8_memory_lcd/src/disp.OBJ;./lib/bsp/efm8_memory_lcd/src/render.OBJ;./lib/bsp/efm8_joystick/joystick.OBJ;./src/adc.OBJ;./lib/efm8ub2/peripheralDrivers/src/uart_1.OBJ" valueType="string"/>
 								<inputType id="com.silabs.ide.si8051.keil.linker.inputType.1202952721" superClass="com.silabs.ide.si8051.keil.linker.inputType"/>
 							</tool>

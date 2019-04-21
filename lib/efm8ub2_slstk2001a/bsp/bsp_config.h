@@ -49,4 +49,13 @@ SI_SBIT(BSP_LED_R, SFR_P2, 0);
 
 SI_SBIT(BSP_BC_EN, SFR_P0, 0);
 
+/*
+ * Defines specific to USB MIDI project.
+ */
+
+// The virtual MIDI port is Cable Number (Port Number) 1
+#define VIRTUAL_CN 0x00
+// Our hardware (UART) MIDI port is Cable Number (Port Number) 2.
+#define UART_CN 0x01
+
 #endif /* BSP_CONFIG_H_ */
