@@ -123,7 +123,7 @@ int main(void) {
 //	uint8_t y;
 //	uint16_t lastTick;
 	MIDI_Event_Packet_t mep;		// MIDI events we write to the host
-	uint8_t MsgToUart[3];			// MIDI messages we write to the serial transmitter
+	uint8_t MsgToUart[3];	// MIDI messages we write to the serial transmitter
 	uint8_t MsgToUartSize;			// how many bytes in that message?
 	bit LBState;
 	bit RBState;
@@ -163,8 +163,8 @@ int main(void) {
 
 		// for now, if a button was pressed, send a Control Change message on MIDI channel 1.
 		if (joystickReportData.Button == LEFT_BUTTON) {
-			mep.event = USB_MIDI_EVENT(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE);		// CC on channel 1
-			mep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0);	// CC on channel 1
+			mep.event = USB_MIDI_EVENT(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE);// CC on channel 1
+			mep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0);// CC on channel 1
 			mep.byte2 = 80;
 			RGB_CEX_BLUE = 0x00;
 			RGB_CEX_GREEN = 0x00;
@@ -185,7 +185,7 @@ int main(void) {
 
 		if (joystickReportData.Button == RIGHT_BUTTON) {
 			mep.event = USB_MIDI_EVENT(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE);
-			mep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0);	// CC on channel 1
+			mep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0);// CC on channel 1
 			mep.byte2 = 81;
 			RGB_CEX_BLUE = 0x00;
 			RGB_CEX_RED = 0x00;
@@ -208,7 +208,7 @@ int main(void) {
 			RGB_CEX_RED = 0x00;
 			RGB_CEX_GREEN = 0x00;
 			mep.event = USB_MIDI_EVENT(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE);
-			mep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0);	// CC on channel 1
+			mep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0);// CC on channel 1
 			mep.byte2 = 82;
 			mep.byte3 = joystickReportData.X;
 			RGB_CEX_BLUE = joystickReportData.X;
@@ -223,7 +223,7 @@ int main(void) {
 			RGB_CEX_RED = 0x00;
 			RGB_CEX_GREEN = 0x00;
 			mep.event = USB_MIDI_EVENT(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE);
-			mep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0);	// CC on channel 1
+			mep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0);// CC on channel 1
 			mep.byte2 = 83;
 			mep.byte3 = joystickReportData.Y;
 			RGB_CEX_BLUE = joystickReportData.Y;
@@ -253,32 +253,33 @@ int main(void) {
 			// We don't care much about the particular event, just the port (Cable Number).
 			// the buffer is only three bytes because the USB packet can only give us
 			// up to three bytes at a time.
-			if (USB_MIDI_CABLE_NUMBER(midiInMsg.event) == UART_CN ) {
+			if (USB_MIDI_CABLE_NUMBER(midiInMsg.event) == UART_CN) {
 				MsgToUart[0] = midiInMsg.byte1;
 				MsgToUart[1] = midiInMsg.byte2;
 				MsgToUart[2] = midiInMsg.byte3;
 
 				switch (USB_MIDI_CODE_INDEX_NUMBER(midiInMsg.event)) {
 				case USB_MIDI_CIN_SYSEND1:
-				case USB_MIDI_CIN_SINGLEBYTE :
+				case USB_MIDI_CIN_SINGLEBYTE:
 					MsgToUartSize = 1;
 					break;
-				case USB_MIDI_CIN_SYSCOM2 :
-				case USB_MIDI_CIN_SYSEND2 :
-				case USB_MIDI_CIN_PROGCHANGE :
-				case USB_MIDI_CIN_CHANPRESSURE :
+				case USB_MIDI_CIN_SYSCOM2:
+				case USB_MIDI_CIN_SYSEND2:
+				case USB_MIDI_CIN_PROGCHANGE:
+				case USB_MIDI_CIN_CHANPRESSURE:
 					MsgToUartSize = 2;
 					break;
-				default :
+				default:
 					MsgToUartSize = 3;
 					break;
 				} // switch
 
 				MIDIUART_writeMessage(MsgToUart, MsgToUartSize);
 
-			} else if (USB_MIDI_CABLE_NUMBER(midiInMsg.event) == VIRTUAL_CN ) {
+			} else if (USB_MIDI_CABLE_NUMBER(midiInMsg.event) == VIRTUAL_CN) {
 
-				if (midiInMsg.byte1 == MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0)) {
+				if (midiInMsg.byte1
+						== MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0)) {
 					switch (midiInMsg.byte2) {
 					case 80: // left button
 						RGB_CEX_GREEN = midiInMsg.byte3 << 1;
@@ -317,7 +318,6 @@ int main(void) {
 			if (usbIntsEnabled)
 				USB_EnableInts();
 		}
-
 
 	} // main while(1) loop
 } // main()

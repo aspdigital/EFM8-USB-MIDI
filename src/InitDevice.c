@@ -590,7 +590,7 @@ extern void PORTS_2_enter_DefaultMode_from_RESET(void) {
 	// $[P2MDOUT - Port 2 Output Mode]
 	/***********************************************************************
 	 - P2.0 output is push-pull
-	 - P2.1 output is open-drain
+	 - P2.1 output is push-pull
 	 - P2.2 output is open-drain
 	 - P2.3 output is open-drain
 	 - P2.4 output is open-drain
@@ -598,7 +598,7 @@ extern void PORTS_2_enter_DefaultMode_from_RESET(void) {
 	 - P2.6 output is open-drain
 	 - P2.7 output is open-drain
 	 ***********************************************************************/
-	P2MDOUT = P2MDOUT_B0__PUSH_PULL | P2MDOUT_B1__OPEN_DRAIN
+	P2MDOUT = P2MDOUT_B0__PUSH_PULL | P2MDOUT_B1__PUSH_PULL
 			| P2MDOUT_B2__OPEN_DRAIN | P2MDOUT_B3__OPEN_DRAIN
 			| P2MDOUT_B4__OPEN_DRAIN | P2MDOUT_B5__OPEN_DRAIN
 			| P2MDOUT_B6__OPEN_DRAIN | P2MDOUT_B7__OPEN_DRAIN;
