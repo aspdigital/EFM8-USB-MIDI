@@ -90,7 +90,7 @@
 /// Line, or row, buffer size in bytes
 #define DISP_BUF_SIZE             (DISP_WIDTH / 8)
 
-#define DISP_BACKGROUND_COLOR     COLOR_BLACK
+#define DISP_BACKGROUND_COLOR     COLOR_WHITE
 #define DISP_VCOM_TOGGLE_RATE_HZ  5
 
 /////////////////////////////////////////////////////////////////////////////
