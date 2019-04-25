@@ -14,7 +14,7 @@ OBJS += \
 lib/efm8_assert/%.OBJ: ../lib/efm8_assert/%.c
 	@echo 'Building file: $<'
 	@echo 'Invoking: Keil 8051 Compiler'
-	C51 "@$(patsubst %.OBJ,%.__i,$@)" || $(RC)
+	wine "/Applications/Simplicity Studio.app/Contents/Eclipse/developer/toolchains/keil_8051/9.53/BIN/C51" "@$(patsubst %.OBJ,%.__i,$@)" || $(RC)
 	@echo 'Finished building: $<'
 	@echo ' '
 

@@ -1,26 +1,23 @@
-C51 COMPILER V9.53.0.0   JOYBUTTON                                                         04/17/2019 17:13:50 PAGE 1   
+C51 COMPILER V9.53.0.0   JOYBUTTON                                                         04/24/2019 21:28:08 PAGE 1   
 
 
 C51 COMPILER V9.53.0.0, COMPILATION OF MODULE JOYBUTTON
-OBJECT MODULE PLACED IN .\src\joybutton.OBJ
-COMPILER INVOKED BY: c:\SiliconLabs\SimplicityStudio\v4\developer\toolchains\keil_8051\9.53\BIN\C51.exe C:\Users\apeters
-                    -.SPECSERV\Projects\EFM8-USB-MIDI\src\joybutton.c OMF2 SMALL DEBUG OBJECTEXTEND ROM(LARGE) WARNINGLEVEL(2) FLOATFUZZY(3) 
-                    -OPTIMIZE(8,SPEED) DEFINE(DEBUG=1) INTVECTOR(0X0000) INTPROMOTE INCDIR(C:\Users\apeters.SPECSERV\Projects\EFM8-USB-MIDI\i
-                    -nc;C:\Users\apeters.SPECSERV\Projects\EFM8-USB-MIDI\inc\config;C:\Users\apeters.SPECSERV\Projects\EFM8-USB-MIDI\usb_audi
-                    -o\inc;${workspace_loc:/;${workspace_loc:/;C:\Users\apeters.SPECSERV\Projects\EFM8-USB-MIDI\lib\bsp\efm8_memory_lcd\inc;C
-                    -:\Users\apeters.SPECSERV\Projects\EFM8-USB-MIDI\lib\bsp\efm8_memory_lcd\inc\config;${workspace_loc:/;${workspace_loc:/C:
-                    -\Users\apeters.SPECSERV\Projects\EFM8-USB-MIDI\lib\bsp\efm8_joystick;${workspace_loc:/C:\Users\apeters.SPECSERV\Projects
-                    -\EFM8-USB-MIDI\lib\bsp\efm8_rgb_led;C:/SiliconLabs/SimplicityStudio/v4/developer/sdks/8051/v4.1.6//Device/shared/si8051B
-                    -ase;C:/SiliconLabs/SimplicityStudio/v4/developer/sdks/8051/v4.1.6//Device/EFM8UB2/inc;C:/SiliconLabs/SimplicityStudio/v4
-                    -/developer/sdks/8051/v4.1.6//Lib/efm8_usb/inc;C:/SiliconLabs/SimplicityStudio/v4/developer/sdks/8051/v4.1.6//Lib/efm8_as
-                    -sert;C:/SiliconLabs/SimplicityStudio/v4/developer/sdks/8051/v4.1.6//kits/common/drivers/efm8_joystick;C:/SiliconLabs/Sim
-                    -plicityStudio/v4/developer/sdks/8051/v4.1.6//kits/common/drivers/efm8_memory_lcd/inc;C:/SiliconLabs/SimplicityStudio/v4/
-                    -developer/sdks/8051/v4.1.6//kits/common/drivers/efm8_memory_lcd/inc/graphics;C:/SiliconLabs/SimplicityStudio/v4/develope
-                    -r/sdks/8051/v4.1.6//kits/common/drivers/efm8_memory_lcd/inc/config;C:/SiliconLabs/SimplicityStudio/v4/developer/sdks/805
-                    -1/v4.1.6//kits/common/bsp;C:/SiliconLabs/SimplicityStudio/v4/developer/sdks/8051/v4.1.6//kits/EFM8UB2_SLSTK2001A/config;
-                    -C:/SiliconLabs/SimplicityStudio/v4/developer/sdks/8051/v4.1.6//kits/common/drivers/efm8_rgb_led;C:/SiliconLabs/Simplicit
-                    -yStudio/v4/developer/sdks/8051/v4.1.6//Device/EFM8UB2/peripheral_driver/inc) PRINT(.\src\joybutton.lst) COND PAGEWIDTH(1
-                    -20) PAGELENGTH(65) OA OBJECT(.\src\joybutton.OBJ)
+OBJECT MODULE PLACED IN .\src/joybutton.OBJ
+COMPILER INVOKED BY: Z:\Applications\Simplicity Studio.app\Contents\Eclipse\developer\toolchains\keil_8051\9.53\BIN\C51.
+                    -exe /Users/andy/Projects/Workspaces/SiLabs_8051/EFM8-USB-MIDI/src/joybutton.c OMF2 SMALL DEBUG OBJECTEXTEND ROM(LARGE) W
+                    -ARNINGLEVEL(2) FLOATFUZZY(3) OPTIMIZE(8,SPEED) DEFINE(DEBUG=1) INTVECTOR(0X0000) INTPROMOTE INCDIR(/Users/andy/Projects/
+                    -Workspaces/SiLabs_8051/EFM8-USB-MIDI/inc/config;/Users/andy/Projects/Workspaces/SiLabs_8051/EFM8-USB-MIDI/inc;/Users/and
+                    -y/Projects/Workspaces/SiLabs_8051/EFM8-USB-MIDI/midi;/Users/andy/Projects/Workspaces/SiLabs_8051/EFM8-USB-MIDI/lib/efm8u
+                    -b2/peripheralDrivers/inc;/Users/andy/Projects/Workspaces/SiLabs_8051/EFM8-USB-MIDI/lib/efm8ub2_slstk2001a/bsp;/Users/and
+                    -y/Projects/Workspaces/SiLabs_8051/EFM8-USB-MIDI/lib/bsp;/Users/andy/Projects/Workspaces/SiLabs_8051/EFM8-USB-MIDI/usb_au
+                    -dio/inc;/Users/andy/Projects/Workspaces/SiLabs_8051/EFM8-USB-MIDI/lib/efm8_usb/inc;/Users/andy/Projects/Workspaces/SiLab
+                    -s_8051/EFM8-USB-MIDI/lib/efm8_assert;/Users/andy/Projects/Workspaces/SiLabs_8051/EFM8-USB-MIDI/lib/bsp/efm8_memory_lcd/i
+                    -nc;/Users/andy/Projects/Workspaces/SiLabs_8051/EFM8-USB-MIDI/lib/bsp/efm8_memory_lcd/inc/config;/Users/andy/Projects/Wor
+                    -kspaces/SiLabs_8051/EFM8-USB-MIDI/lib/bsp/efm8_memory_lcd/inc/graphics;/Users/andy/Projects/Workspaces/SiLabs_8051/EFM8-
+                    -USB-MIDI/lib/bsp/efm8_joystick;/Users/andy/Projects/Workspaces/SiLabs_8051/EFM8-USB-MIDI/lib/bsp/efm8_rgb_led;/Applicati
+                    -ons/Simplicity Studio.app/Contents/Eclipse/developer/sdks/8051/v4.1.6//Device/shared/si8051Base;/Applications/Simplicity
+                    - Studio.app/Contents/Eclipse/developer/sdks/8051/v4.1.6//Device/EFM8UB2/inc) PRINT(.\src/joybutton.lst) COND PAGEWIDTH(1
+                    -20) PAGELENGTH(65) OA OBJECT(.\src/joybutton.OBJ)
 
 line level    source
 
@@ -63,11 +60,11 @@ line level    source
   37          uint8_t Joystick_GetStatus(void)
   38          {
   39   1        uint8_t joyStatus = 0;
-C51 COMPILER V9.53.0.0   JOYBUTTON                                                         04/17/2019 17:13:50 PAGE 2   
-
   40   1        uint8_t joystickDirection;
   41   1        uint16_t sample;
   42   1        uint32_t mv;
+C51 COMPILER V9.53.0.0   JOYBUTTON                                                         04/24/2019 21:28:08 PAGE 2   
+
   43   1      
   44   1        // Manually initiate an ADC conversion
   45   1        ADC0CN0_ADBUSY = 1;

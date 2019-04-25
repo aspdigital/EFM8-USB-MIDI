@@ -17,6 +17,7 @@
 #include <efm8_usb.h>
 #include "descriptors.h"
 #include "rgb_led.h"
+#include "usb_midi.h"
 
 //-----------------------------------------------------------------------------
 // Constants
@@ -25,7 +26,10 @@
 //-----------------------------------------------------------------------------
 // Variables
 //-----------------------------------------------------------------------------
-extern bit newInEvent;
+extern bit newIncomingPacket;
+extern SI_SEGMENT_VARIABLE(EndpointBuffer, MIDI_Event_Packet_t, SI_SEG_XDATA);
+extern SI_SEGMENT_VARIABLE(midiUsbOutPacket, MIDI_Event_Packet_t, SI_SEG_XDATA);
+
 
 //-----------------------------------------------------------------------------
 // Functions
@@ -43,7 +47,18 @@ uint16_t USBD_XferCompleteCb(uint8_t epAddr, USB_Status_TypeDef status,
 
 	if (status == USB_STATUS_OK) {
 		if (epAddr == 2) {
-			newInEvent = 1;
+			// copy contents of the endpoint buffer to the
+			// working buffer which will be parsed.
+			midiUsbOutPacket.event = EndpointBuffer.event;
+			midiUsbOutPacket.byte1 = EndpointBuffer.byte1;
+			midiUsbOutPacket.byte2 = EndpointBuffer.byte2;
+			midiUsbOutPacket.byte3 = EndpointBuffer.byte3;
+			// tell the world we have a new packet.
+			newIncomingPacket = 1;
+			// prepare for the next message packet.
+			USBD_Read(EP1OUT, (uint8_t *) &EndpointBuffer,
+						sizeof(MIDI_Event_Packet_t), // midi messages are four bytes
+						true); // we need the transfer-complete callback.
 		}
 	}
 	return 0;

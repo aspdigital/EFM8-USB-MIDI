@@ -20,6 +20,8 @@ lib/bsp/efm8_rgb_led \
 lib/efm8_assert \
 lib/efm8_usb/src \
 lib/efm8ub2/bsp/efm8_memory_lcd/src \
+lib/efm8ub2/peripheralDrivers/inc \
 lib/efm8ub2/peripheralDrivers/src \
+midi \
 src \
 

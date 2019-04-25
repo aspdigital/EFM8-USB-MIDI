@@ -49,11 +49,18 @@
 #include "midi_uart.h"
 
 /*
- * Global buffer for the OUT endpoint.
+ * Global buffers for the OUT endpoint.
+ * One buffer is used for the USBD_Read() and the callback.
+ * The other buffer is used for parsing the message. The contents of the
+ * first buffer are copied into it in the transfer-complete callback.
  */
-SI_SEGMENT_VARIABLE(midiInMsg, MIDI_Event_Packet_t, SI_SEG_XDATA);
-// flag indicating a new event.
-bit newInEvent;
+
+// this buffer is used for the USBD_Read().
+SI_SEGMENT_VARIABLE(EndpointBuffer, MIDI_Event_Packet_t, SI_SEG_XDATA);
+// this buffer is filled by the callback with the contents of midiInReadMsg:
+SI_SEGMENT_VARIABLE(midiUsbOutPacket, MIDI_Event_Packet_t, SI_SEG_XDATA);
+// flag indicating a new packet, set in the callback for the EP1 OUT interrupt.
+volatile bit newIncomingPacket;
 
 //-----------------------------------------------------------------------------
 // SiLabs_Startup() Routine
@@ -144,9 +151,17 @@ int main(void) {
 
 	LBState = 0;
 	RBState = 0;
-	newInEvent = 0;
+	newIncomingPacket = 0;
 
 	MIDIUART_init();
+	/*
+	 * Prepare for the first USB packet with a MIDI message.
+	 * Remember, this provides packets for ALL ports.
+	 */
+
+	USBD_Read(EP1OUT, (uint8_t *) &EndpointBuffer,
+				sizeof(MIDI_Event_Packet_t), // midi messages are four bytes
+				true); // we need the transfer-complete callback.
 
 	while (1) {
 // $[Generated Run-time code]
@@ -178,7 +193,7 @@ int main(void) {
 			LBState = !LBState;
 			usbIntsEnabled = USB_GetIntsEnabled();
 			USB_DisableInts();
-			USBD_Write(EP1IN, (uint8_t *) &mep, sizeof(mep), true);
+			USBD_Write(EP1IN, (uint8_t *) &mep, sizeof(mep), false);
 			if (usbIntsEnabled)
 				USB_EnableInts();
 		} // Left Button
@@ -199,7 +214,7 @@ int main(void) {
 			RBState = !RBState;
 			usbIntsEnabled = USB_GetIntsEnabled();
 			USB_DisableInts();
-			USBD_Write(EP1IN, (uint8_t *) &mep, sizeof(mep), true);
+			USBD_Write(EP1IN, (uint8_t *) &mep, sizeof(mep), false);
 			if (usbIntsEnabled)
 				USB_EnableInts();
 		} // Right Button
@@ -214,7 +229,7 @@ int main(void) {
 			RGB_CEX_BLUE = joystickReportData.X;
 			usbIntsEnabled = USB_GetIntsEnabled();
 			USB_DisableInts();
-			USBD_Write(EP1IN, (uint8_t *) &mep, sizeof(mep), true);
+			USBD_Write(EP1IN, (uint8_t *) &mep, sizeof(mep), false);
 			if (usbIntsEnabled)
 				USB_EnableInts();
 		} // Joystick X
@@ -229,36 +244,26 @@ int main(void) {
 			RGB_CEX_BLUE = joystickReportData.Y;
 			usbIntsEnabled = USB_GetIntsEnabled();
 			USB_DisableInts();
-			USBD_Write(EP1IN, (uint8_t *) &mep, sizeof(mep), true);
+			USBD_Write(EP1IN, (uint8_t *) &mep, sizeof(mep), false);
 			if (usbIntsEnabled)
 				USB_EnableInts();
 		} // Joystick X
 
-		/*
-		 * Try to read from the OUT endpoint.
-		 * remember, this provides packets for ALL ports.
-		 */
-
-		if (!USBD_EpIsBusy(EP1OUT)) {
-			USBD_Read(EP1OUT, (uint8_t *) &midiInMsg,
-					sizeof(MIDI_Event_Packet_t), // midi messages are four bytes
-					true);
-		}
 
 		// did we get a new event?
-		if (newInEvent) {
-			newInEvent = 0;
+		if (newIncomingPacket) {
+			newIncomingPacket = 0;
 
 			// if it targets the hardware port, just pass it along.
 			// We don't care much about the particular event, just the port (Cable Number).
 			// the buffer is only three bytes because the USB packet can only give us
 			// up to three bytes at a time.
-			if (USB_MIDI_CABLE_NUMBER(midiInMsg.event) == UART_CN) {
-				MsgToUart[0] = midiInMsg.byte1;
-				MsgToUart[1] = midiInMsg.byte2;
-				MsgToUart[2] = midiInMsg.byte3;
+			if (USB_MIDI_CABLE_NUMBER(midiUsbOutPacket.event) == UART_CN) {
+				MsgToUart[0] = midiUsbOutPacket.byte1;
+				MsgToUart[1] = midiUsbOutPacket.byte2;
+				MsgToUart[2] = midiUsbOutPacket.byte3;
 
-				switch (USB_MIDI_CODE_INDEX_NUMBER(midiInMsg.event)) {
+				switch (USB_MIDI_CODE_INDEX_NUMBER(midiUsbOutPacket.event)) {
 				case USB_MIDI_CIN_SYSEND1:
 				case USB_MIDI_CIN_SINGLEBYTE:
 					MsgToUartSize = 1;
@@ -276,30 +281,30 @@ int main(void) {
 
 				MIDIUART_writeMessage(MsgToUart, MsgToUartSize);
 
-			} else if (USB_MIDI_CABLE_NUMBER(midiInMsg.event) == VIRTUAL_CN) {
+			} else if (USB_MIDI_CABLE_NUMBER(midiUsbOutPacket.event) == VIRTUAL_CN) {
 
-				if (midiInMsg.byte1
+				if (midiUsbOutPacket.byte1
 						== MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0)) {
-					switch (midiInMsg.byte2) {
+					switch (midiUsbOutPacket.byte2) {
 					case 80: // left button
-						RGB_CEX_GREEN = midiInMsg.byte3 << 1;
+						RGB_CEX_GREEN = midiUsbOutPacket.byte3 << 1;
 						RGB_CEX_RED = 0;
 						RGB_CEX_BLUE = 0;
 						break;
 					case 81: // right button
 						RGB_CEX_GREEN = 0;
-						RGB_CEX_RED = midiInMsg.byte3 << 1;
+						RGB_CEX_RED = midiUsbOutPacket.byte3 << 1;
 						RGB_CEX_BLUE = 0;
 						break;
 					case 82: // joystick X
 						RGB_CEX_GREEN = 0;
 						RGB_CEX_RED = 0;
-						RGB_CEX_BLUE = midiInMsg.byte3 << 1;
+						RGB_CEX_BLUE = midiUsbOutPacket.byte3 << 1;
 						break;
 					case 83: // joystick Y
 						RGB_CEX_GREEN = 0; //midiInMsg.byte3 << 1;
 						RGB_CEX_RED = 0;
-						RGB_CEX_BLUE = midiInMsg.byte3 << 1;
+						RGB_CEX_BLUE = midiUsbOutPacket.byte3 << 1;
 						break;
 					} // switch
 				} // event
@@ -314,7 +319,7 @@ int main(void) {
 		if (MIDIUART_readMessage(&mep) != 0) {
 			usbIntsEnabled = USB_GetIntsEnabled();
 			USB_DisableInts();
-			USBD_Write(EP1IN, (uint8_t *) &mep, sizeof(mep), true);
+			USBD_Write(EP1IN, (uint8_t *) &mep, sizeof(mep), false);
 			if (usbIntsEnabled)
 				USB_EnableInts();
 		}

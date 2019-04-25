@@ -3,7 +3,6 @@
 "./src/SILABS_STARTUP.OBJ",
 "./src/callback.OBJ",
 "./src/descriptors.OBJ",
-"./lib/efm8ub2/peripheralDrivers/src/usb_0.OBJ",
 "./lib/efm8_usb/src/efm8_usbd.OBJ",
 "./lib/efm8_usb/src/efm8_usbdch9.OBJ",
 "./lib/efm8_usb/src/efm8_usbdep.OBJ",
@@ -14,8 +13,13 @@
 "./lib/efm8ub2/peripheralDrivers/src/spi_0.OBJ",
 "./lib/efm8ub2/bsp/efm8_memory_lcd/src/spi.OBJ",
 "./lib/efm8ub2/bsp/efm8_memory_lcd/src/tick.OBJ",
-"./lib/bsp/efm8_rgb_led/rgb_led.OBJ",
 "./lib/bsp/efm8_memory_lcd/src/disp.OBJ",
 "./lib/bsp/efm8_memory_lcd/src/render.OBJ",
-"./lib/bsp/efm8_joystick/joystick.OBJ"
+"./lib/bsp/efm8_joystick/joystick.OBJ",
+"./src/adc.OBJ",
+"./lib/efm8ub2/peripheralDrivers/src/uart_1.OBJ",
+"./lib/bsp/efm8_rgb_led/rgb_led.OBJ",
+"./lib/efm8ub2/peripheralDrivers/src/usb_0.OBJ",
+"./midi/midi.OBJ",
+"./midi/midi_uart.OBJ"
 TO "EFM8-USB-MIDI.OMF.CRBUILD" REMOVEUNUSED PRINT(.\EFM8-USB-MIDI.m51) PAGEWIDTH (120) PAGELENGTH (65) CLASSES( ECODE(C:0x0 - C:0xfbfe), HCONST(C:0x0 - C:0xfbfe), XDATA(X:0x0 - X:0xfff), HDATA(X:0x0 - X:0xfff))
