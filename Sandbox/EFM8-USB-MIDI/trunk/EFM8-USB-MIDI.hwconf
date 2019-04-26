@@ -4,6 +4,7 @@
     <property object="ADC_0" propertyId="ABPeripheral.included" value="true"/>
     <property object="ADC_0" propertyId="adc.configuration.sarclockdivider" value="6"/>
     <property object="ADC_0" propertyId="adc.control.enableadc" value="Enabled"/>
+    <property object="ADC_0" propertyId="adc.control.startofconversion" value="Timer 5 overflow"/>
     <property object="ADC_0" propertyId="adc.hidden.sarclockdividerreal" value="5"/>
     <property object="ADC_0" propertyId="adc.inputselection.negativeinput" value="Ground (single-ended mode)"/>
     <property object="ADC_0" propertyId="adc.inputselection.positiveinput" value="ADC0P.4 (P2.5)"/>
@@ -23,6 +24,7 @@
     <property object="HFOSC_0" propertyId="hfosc.highfrequencyoscillatorcontrol.hfoscundividedfrequency" value="48.000 MHz"/>
     <property object="HFOSC_0" propertyId="hfosc.highfrequencyoscillatorcontrol.oscillatorfrequencydividercontrol" value="Divide by 1"/>
     <property object="INTERRUPT_0" propertyId="ABPeripheral.included" value="true"/>
+    <property object="INTERRUPT_0" propertyId="interrupt.extendedinterruptenable1.enableadc0conversioncompleteinterrupt" value="Enabled"/>
     <property object="INTERRUPT_0" propertyId="interrupt.extendedinterruptenable1.enabletimer3interrupt" value="Enabled"/>
     <property object="INTERRUPT_0" propertyId="interrupt.extendedinterruptenable1.enableusbusb0interrupt" value="Enabled"/>
     <property object="INTERRUPT_0" propertyId="interrupt.extendedinterruptenable2.enableuart1interrupt" value="Enabled"/>
@@ -135,6 +137,10 @@
     <property object="TIMER16_3" propertyId="timer16.reloadlowbyte.reloadlowbyte" value="48"/>
     <property object="TIMER16_4" propertyId="ABPeripheral.included" value="true"/>
     <property object="TIMER16_5" propertyId="ABPeripheral.included" value="true"/>
+    <property object="TIMER16_5" propertyId="timer16.initandreloadvalue.targetoverflowfrequency" value="1000"/>
+    <property object="TIMER16_5" propertyId="timer16.initandreloadvalue.timerreloadvalue" value="63536"/>
+    <property object="TIMER16_5" propertyId="timer16.reloadhighbyte.reloadhighbyte" value="248"/>
+    <property object="TIMER16_5" propertyId="timer16.reloadlowbyte.reloadlowbyte" value="48"/>
     <property object="TIMER_SETUP_0" propertyId="ABPeripheral.included" value="true"/>
     <property object="TIMER_SETUP_0" propertyId="timer_setup.clockcontrol0.timer01prescale" value="SYSCLK / 48"/>
     <property object="TIMER_SETUP_0" propertyId="timer_setup.timer0.mode" value="Mode 2, 8-bit Counter/Timer with Auto-Reload"/>

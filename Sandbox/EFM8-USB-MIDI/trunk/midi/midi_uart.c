@@ -83,6 +83,15 @@ static uint8_t MIDIUART_rxFifoPop(void) {
 } // MIDIUART_rxFifoPop
 
 /*
+ * Some packets require more than one byte, so wait until the next byte is in
+ * the FIFO. This blocks. Maybe a timeout?
+ */
+static uint8_t MIDIUART_rxFifoPopBlock(void) {
+	while (0 == rxfifoptr.count);
+	return MIDIUART_rxFifoPop();
+}
+
+/*
  * Clear the FIFOs and all.
  * This should probably wrap up everything needed to configure the UART for this application.
  */
@@ -190,7 +199,7 @@ uint8_t MIDIUART_readMessage(MIDI_Event_Packet_t *mep) {
 		mep->byte1 = prev;
 		bytecnt = 1;
 
-		while ( ((newbyte = MIDIUART_rxFifoPop()) != MIDI_MSG_EOX) && (bytecnt < 3)) {
+		while ( ((newbyte = MIDIUART_rxFifoPopBlock()) != MIDI_MSG_EOX) && (bytecnt < 3)) {
 			if (bytecnt == 1) {
 				mep->byte2 = newbyte;
 				bytecnt++;
@@ -233,7 +242,7 @@ uint8_t MIDIUART_readMessage(MIDI_Event_Packet_t *mep) {
 		if (newbyte == MIDI_MSG_SOX) {
 			// Start of SysEx block. Read up to four more bytes, looking for EOX.
 			bytecnt = 0;
-			while ( ( (newbyte = MIDIUART_rxFifoPop()) != MIDI_MSG_EOX) && (bytecnt < 3)) {
+			while ( ( (newbyte = MIDIUART_rxFifoPopBlock()) != MIDI_MSG_EOX) && (bytecnt < 3)) {
 				if (bytecnt == 0) {
 					mep->byte1 = newbyte;
 					bytecnt++;
@@ -342,7 +351,7 @@ uint8_t MIDIUART_readMessage(MIDI_Event_Packet_t *mep) {
 			// Now read this packet's data bytes from the FIFO.
 			// we can destroy prev as it is not used for non-SysEx packets.
 			for (prev = 0; prev < bytecnt; prev++) {
-				newbyte = MIDIUART_rxFifoPop();
+				newbyte = MIDIUART_rxFifoPopBlock();
 				if (bytecnt == 0) {
 					mep->byte2 = newbyte;
 				} else if (bytecnt == 1) {
@@ -358,5 +367,3 @@ uint8_t MIDIUART_readMessage(MIDI_Event_Packet_t *mep) {
 
 	return 4;
 } //MIDIUART_readMessage
-
-
