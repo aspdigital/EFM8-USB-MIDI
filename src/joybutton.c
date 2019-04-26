@@ -15,6 +15,7 @@
 //#include "retargetserial.h"
 #include "joybutton.h"
 #include "joystick.h"
+#include "adc.h"
 #include <string.h>
 
 //-----------------------------------------------------------------------------
@@ -34,23 +35,12 @@
 // Return - Which direction on the joystick has been pushed as well as which
 //          buttons have been pressed
 //-----------------------------------------------------------------------------
+
 uint8_t Joystick_GetStatus(void)
 {
   uint8_t joyStatus = 0;
-  uint8_t joystickDirection;
-  uint16_t sample;
-  uint32_t mv;
 
-  // Manually initiate an ADC conversion
-  ADC0CN0_ADBUSY = 1;
-  // Wait for conversion to complete
-  while (ADC0CN0_ADBUSY);
-
-  sample = ADC0;
-  mv = ((uint32_t)sample) * 3300 / 1024;
-
-  joystickDirection = JOYSTICK_convert_mv_to_direction(mv);
-
+  // joystickDirection is declared in adc.h
 	switch (joystickDirection)
 	{
 	case JOYSTICK_N:    joyStatus |= JOY_UP;                break;
