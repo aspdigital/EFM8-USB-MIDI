@@ -83,13 +83,11 @@ static uint8_t MIDIUART_rxFifoPop(void) {
 } // MIDIUART_rxFifoPop
 
 /*
- * Some packets require more than one byte, so wait until the next byte is in
- * the FIFO. This blocks. Maybe a timeout?
+ * Peek at the next thing in the receive FIFO but don't pop it off.
  */
-static uint8_t MIDIUART_rxFifoPopBlock(void) {
-	while (0 == rxfifoptr.count);
-	return MIDIUART_rxFifoPop();
-}
+static uint8_t MIDIUART_rxFifoPeek(void) {
+	return rxfifobuf[rxfifoptr.tail];
+} // MIDIUART_rxFifoPeek()
 
 /*
  * Clear the FIFOs and all.
@@ -103,6 +101,7 @@ void MIDIUART_init(void) {
 	txfifoptr.tail = 0;
 	txfifoptr.count = 0;
 	txidle = 1;
+
 } // MIDIUART_init()
 
 /*
@@ -133,13 +132,17 @@ void MIDIUART_writeMessage(uint8_t *msg, uint8_t msize) {
 }	// MIDIUART_writeMessage
 
 /*
- * Check to see if there is a new packet in the FIFO.
- * If the receive FIFO count is zero, return 0 immediately, indicating nothing to
- * read.
- * Otherwise, read the message and parse it, and stuff the results into a four-byte
+ * Check to see if there is a new packet in the serial receive FIFO.
+ * This is implemented as a state machine.
+ *
+ * The idea is to read the message and parse it, and stuff the results into a four-byte
  * MIDI USB Message Packet. Since there is only one originating port, the cable
  * number is the constant UART_CN (in bsp_config.h).
  *
+ * In all cases, when we first get here, if the receive FIFO count is zero, return
+ * 0 immediately, indicating nothing to read.
+ *
+ * We start in the idle state, looking for a status byte.
  * If the count is non-zero, pop the FIFO, and inspect it: is it a status or
  * data byte? If status, determine how many data bytes are associated with the
  * message. This is mostly straightforward, as there are only eight message types.
@@ -170,9 +173,78 @@ void MIDIUART_writeMessage(uint8_t *msg, uint8_t msize) {
  * 0x04 (SysEx starts or continues), we know that we are continuing the handling of a SysEx
  * message.
  *
- * If, at any time, the FIFO count goes to zero while we are trying to read and parse
- * a packet, we will block and wait for the next receive byte.
+ *******************************************************************************
+ * STATE TABLE.
+ *
+ * Call the function with a pointer to the USB MIDI message packet buffer, which
+ * is four bytes.
+ *
+ * Start in idle, check count, if zero, return, else pop FIFO. This byte should
+ * be STATUS. Parse the status byte and determine how many data bytes are to follow,
+ * and what the actual event (CIN and cable number) part of the packet is.
+ * Set byte 1 of the packet to this status value.
+ * Clear bytes 2 and 3 of the packet, as we may or may not get data for them.
+ * Set the byte count and set the state to waiting for byte2.
+ *
+ * In waiting for data, check rx fifo byte count. If it is zero, exit. The next
+ * time this is called it'll jump to this state.
+ *
+ * If bytes are waiting, read the next byte. Save it in byte2. If this is the
+ * last byte of the packet, return true so the caller knows it has a packet and
+ * set the state to idle. If not, set the set to waiting for byte3. Check the
+ * FIFO count again, if zero, exit, and the next time this is called we jump to
+ * the waiting for byte3 state. If there is a byte, read it and save it in byte3.
+ * Return true so caller can handle the whole packet. Otherwise return false and
+ * deal the next time.
+ *
+ * If the STATUS byte is SOX, we have to parse differently. That's because the
+ * amount of data coming from the sender can be anything, but we have to set the
+ * proper code index number for each MIDI USB packet. We need to read at least
+ * four bytes from the FIFO to know which CIN to use.
+ *
+ * So when we see SOX, set the state to SOX1. Check to see if more bytes are available.
+ * If not, exit in that state. If so, set the state to SOX1 and read it and save
+ * it as byte1. Check count,
+ *
+ *******************************************************************************
  */
+typedef enum {
+	MU_IDLE,		// waiting to start a new packet
+	MU_DATABYTE2,	// next byte in will be for mep->byte2
+	MU_DATABYTE3,	// next byte in will be for mep->byte3
+	MU_SYSEX1,		// next byte in is 1st sysex byte, put in mep->byte1
+	MU_SYSEX2,		// next byte in is 2nd sysex byte or EOX, put in mep->byte2
+	MU_SYSEX3,		// next byte is in 3rd sysex byte or EOX, put in mep-byte3
+	MU_SYSEX4		// peek at next byte (don't pop) to see if it's EOX
+} MIDIUART_state_t;
+
+// our state register, even though strictly speaking this isn't a state machine.
+static MIDIUART_state_t state = MU_IDLE;
+
+bool MIDIUART_readMessage(MIDI_Event_Packet_t *mep) {
+	uint8_t newbyte;
+
+	// do nothing if there is nothing to read.
+	if (0 == rxfifoptr.count)
+		return false;
+
+	// The "State" as such defines our entry point here.
+	switch (state) {
+	case MU_IDLE :
+		newbyte = MIDIUART_rxFifoPop();
+		// this has to be a status byte. If it is not, bump out and eventually
+		// we'll flush enough and find one.
+		if (newbyte < 0x80)
+			return false;
+
+		// If it's a SOX byte
+
+		break;
+	}
+}
+
+
+
 
 uint8_t MIDIUART_readMessage(MIDI_Event_Packet_t *mep) {
 	static uint8_t cin = USB_MIDI_CIN_MISC;		// previous Code Index Number
