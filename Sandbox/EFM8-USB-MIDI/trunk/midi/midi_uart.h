@@ -58,9 +58,7 @@ void MIDIUART_init(void);
 
 void MIDIUART_writeMessage(uint8_t *msg, uint8_t msize);
 
-uint8_t MIDIUART_readMessage(MIDI_Event_Packet_t *mep);
-
-
+bool MIDIUART_readMessage(MIDI_Event_Packet_t *mep);
 
 
 #endif /* MIDI_UART_H_ */

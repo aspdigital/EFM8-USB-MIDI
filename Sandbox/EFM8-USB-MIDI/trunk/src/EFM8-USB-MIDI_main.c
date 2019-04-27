@@ -75,6 +75,7 @@ void SiLabs_Startup(void) {
 	// [SiLabs Startup]$
 }
 
+#if 0
 /* UART callbacks. UART1 is for the MIDI port. Perhaps this should be in a midi directory? */
 void UART1_transmitCompleteCb(void) {
 
@@ -83,6 +84,7 @@ void UART1_transmitCompleteCb(void) {
 void UART1_receiveCompleteCb(void) {
 
 }
+#endif
 
 /*
  * Structure which holds joystick and button-press information.
@@ -129,8 +131,9 @@ int main(void) {
 //	static SI_SEGMENT_VARIABLE(line[DISP_BUF_SIZE], uint8_t, RENDER_LINE_SEG);
 //	uint8_t y;
 //	uint16_t lastTick;
-	MIDI_Event_Packet_t mep;		// MIDI events we write to the host
-	uint8_t MsgToUart[3];	// MIDI messages we write to the serial transmitter
+	MIDI_Event_Packet_t uimep;		// user interface MIDI events we write to the host
+	MIDI_Event_Packet_t spmep;		// events received on serial MIDI in we write to the host
+	uint8_t MsgToUart[3];			// MIDI messages we write to the serial transmitter
 	uint8_t MsgToUartSize;			// how many bytes in that message?
 	bit LBState;
 	bit RBState;
@@ -187,43 +190,43 @@ int main(void) {
 
 		// for now, if a button was pressed, send a Control Change message on MIDI channel 1.
 		if (joystickReportData.Button == LEFT_BUTTON) {
-			mep.event = USB_MIDI_EVENT(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE); // CC on channel 1
-			mep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0); // CC on channel 1
-			mep.byte2 = 80;
+			uimep.event = USB_MIDI_EVENT(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE); // CC on channel 1
+			uimep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0); // CC on channel 1
+			uimep.byte2 = 80;
 			RGB_CEX_BLUE = 0x00;
 			RGB_CEX_GREEN = 0x00;
 			if (LBState == 0) {
 				RGB_CEX_RED = 0x7F;
-				mep.byte3 = 0x7F;		// full
+				uimep.byte3 = 0x7F;		// full
 			} else {
 				RGB_CEX_RED = 0x00;
-				mep.byte3 = 0x00;
+				uimep.byte3 = 0x00;
 			}
 			LBState = !LBState;
 			usbIntsEnabled = USB_GetIntsEnabled();
 			USB_DisableInts();
-			USBD_Write(EP1IN, (uint8_t *) &mep, sizeof(mep), false);
+			USBD_Write(EP1IN, (uint8_t *) &uimep, sizeof(uimep), false);
 			if (usbIntsEnabled)
 				USB_EnableInts();
 		} // Left Button
 
 		if (joystickReportData.Button == RIGHT_BUTTON) {
-			mep.event = USB_MIDI_EVENT(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE);
-			mep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0); // CC on channel 1
-			mep.byte2 = 81;
+			uimep.event = USB_MIDI_EVENT(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE);
+			uimep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0); // CC on channel 1
+			uimep.byte2 = 81;
 			RGB_CEX_BLUE = 0x00;
 			RGB_CEX_RED = 0x00;
 			if (RBState == 0) {
 				RGB_CEX_GREEN = 0x7F;
-				mep.byte3 = 0x7F;		// full
+				uimep.byte3 = 0x7F;		// full
 			} else {
 				RGB_CEX_GREEN = 0x00;
-				mep.byte3 = 0x00;
+				uimep.byte3 = 0x00;
 			}
 			RBState = !RBState;
 			usbIntsEnabled = USB_GetIntsEnabled();
 			USB_DisableInts();
-			USBD_Write(EP1IN, (uint8_t *) &mep, sizeof(mep), false);
+			USBD_Write(EP1IN, (uint8_t *) &uimep, sizeof(uimep), false);
 			if (usbIntsEnabled)
 				USB_EnableInts();
 		} // Right Button
@@ -231,14 +234,14 @@ int main(void) {
 		if (joystickReportData.X) {
 			RGB_CEX_RED = 0x00;
 			RGB_CEX_GREEN = 0x00;
-			mep.event = USB_MIDI_EVENT(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE);
-			mep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0); // CC on channel 1
-			mep.byte2 = 82;
-			mep.byte3 = joystickReportData.X;
+			uimep.event = USB_MIDI_EVENT(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE);
+			uimep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0); // CC on channel 1
+			uimep.byte2 = 82;
+			uimep.byte3 = joystickReportData.X;
 			RGB_CEX_BLUE = joystickReportData.X;
 			usbIntsEnabled = USB_GetIntsEnabled();
 			USB_DisableInts();
-			USBD_Write(EP1IN, (uint8_t *) &mep, sizeof(mep), false);
+			USBD_Write(EP1IN, (uint8_t *) &uimep, sizeof(uimep), false);
 			if (usbIntsEnabled)
 				USB_EnableInts();
 		} // Joystick X
@@ -246,14 +249,14 @@ int main(void) {
 		if (joystickReportData.Y) {
 			RGB_CEX_RED = 0x00;
 			RGB_CEX_GREEN = 0x00;
-			mep.event = USB_MIDI_EVENT(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE);
-			mep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0); // CC on channel 1
-			mep.byte2 = 83;
-			mep.byte3 = joystickReportData.Y;
+			uimep.event = USB_MIDI_EVENT(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE);
+			uimep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0); // CC on channel 1
+			uimep.byte2 = 83;
+			uimep.byte3 = joystickReportData.Y;
 			RGB_CEX_BLUE = joystickReportData.Y;
 			usbIntsEnabled = USB_GetIntsEnabled();
 			USB_DisableInts();
-			USBD_Write(EP1IN, (uint8_t *) &mep, sizeof(mep), false);
+			USBD_Write(EP1IN, (uint8_t *) &uimep, sizeof(uimep), false);
 			if (usbIntsEnabled)
 				USB_EnableInts();
 		} // Joystick X
@@ -330,10 +333,10 @@ int main(void) {
 		 * These get packetized by the serial receiver for sending to host on USB IN endpoint.
 		 * We just pass along the packet.
 		 */
-		if (MIDIUART_readMessage(&mep) != 0) {
+		if (MIDIUART_readMessage(&spmep)) {
 			usbIntsEnabled = USB_GetIntsEnabled();
 			USB_DisableInts();
-			USBD_Write(EP1IN, (uint8_t *) &mep, sizeof(mep), false);
+			USBD_Write(EP1IN, (uint8_t *) &spmep, sizeof(spmep), false);
 			if (usbIntsEnabled)
 				USB_EnableInts();
 		}
