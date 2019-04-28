@@ -64,6 +64,7 @@ SI_INTERRUPT (UART1_ISR, UART1_IRQn)
 			rxfifoptr.head = 0;
 		}
 		rxfifoptr.count++;
+		P3_B7= ~P3_B7;
 	} // receive interrupt
 } // UART1_ISR
 
@@ -72,7 +73,7 @@ SI_INTERRUPT (UART1_ISR, UART1_IRQn)
  */
 static uint8_t MIDIUART_rxFifoPop(void) {
 	uint8_t c;
-
+	P3_B0 = ~P3_B0;
 	c = rxfifobuf[rxfifoptr.tail];
 	rxfifoptr.tail++;
 	if (rxfifoptr.tail >= MIDI_UART_FIFO_SIZE) {
@@ -87,6 +88,11 @@ static uint8_t MIDIUART_rxFifoPop(void) {
  * This should probably wrap up everything needed to configure the UART for this application.
  */
 void MIDIUART_init(void) {
+#if 1
+	for (rxfifoptr.count = 0;rxfifoptr.count < MIDI_UART_FIFO_SIZE; rxfifoptr.count++)
+		rxfifobuf[rxfifoptr.count] = 0;
+#endif
+
 	rxfifoptr.head = 0;
 	rxfifoptr.tail = 0;
 	rxfifoptr.count = 0;
@@ -211,10 +217,13 @@ typedef enum {
 
 
 bool MIDIUART_readMessage(MIDI_Event_Packet_t *mep) {
-	bool done;
-	static uint8_t cin;
-	uint8_t newbyte;
-	static uint8_t bytecnt;
+	// these are newly assigned at every call.
+	bool done;				// indicates packet finished or not, the return value
+	uint8_t newbyte;		// read from FIFO
+	// saved each time through.
+	static uint8_t cin;			// Code Index Number for this packet
+	static uint8_t bytecnt;		// iterator for data bytes in this packet
+	static uint8_t bytesinpacket;	// set by status parser for running status.
 	static MIDIUART_state_t state = MU_IDLE;
 
 	// start not done, obviously. This will be set as necessary.
@@ -233,10 +242,6 @@ bool MIDIUART_readMessage(MIDI_Event_Packet_t *mep) {
 
 				// Get the next byte in the FIFO.
 				newbyte = MIDIUART_rxFifoPop();
-				// this has to be a status byte. If it is not, bump out and eventually
-				// we'll flush enough and find one.
-				if (newbyte < 0x80)
-					return false;
 
 				// Is it a SOX byte?
 				if (newbyte == MIDI_MSG_SOX) {
@@ -245,6 +250,24 @@ bool MIDIUART_readMessage(MIDI_Event_Packet_t *mep) {
 					// But we do know that byte1 is the SOX byte.
 					mep->byte1 = MIDI_MSG_SOX;
 					state = MU_SYSEX1;
+
+				} else if (newbyte < 0x80) {
+					// running status now active. Use the previous CIN/CN and
+					// byte1 (the previous status). The byte we just read is
+					// byte2 of the packet.
+					mep->byte2 = newbyte;
+
+					// See if we need one more byte to complete the packet.
+					// If so, wait for it, otherwise this packet is done.
+					if (bytesinpacket == 2) {
+						// yes, one more data byte to fetch:
+						state = MU_DATABYTE3;
+					} else {
+						// no more for this packet, send it. Note we cleared byte
+						// at entry to this state.
+						state = MU_IDLE;
+						done = true;
+					} // bytes in packet
 
 				} else {
 
@@ -258,31 +281,31 @@ bool MIDIUART_readMessage(MIDI_Event_Packet_t *mep) {
 					switch (newbyte & 0xF0) {
 					case MIDI_MSG_NOTEOFF :
 						cin = USB_MIDI_CIN_NOTEOFF;
-						bytecnt = 2;
+						bytesinpacket = 2;
 						break;
 					case MIDI_MSG_NOTEON :
 						cin = USB_MIDI_CIN_NOTEON;
-						bytecnt = 2;
+						bytesinpacket = 2;
 						break;
 					case MIDI_MSG_POLYPRESSURE :
 						cin = USB_MIDI_CIN_POLYKEYPRESS;
-						bytecnt = 2;
+						bytesinpacket = 2;
 						break;
 					case MIDI_MSG_CTRLCHANGE :
 						cin = USB_MIDI_CIN_CTRLCHANGE;
-						bytecnt = 2;
+						bytesinpacket = 2;
 						break;
 					case MIDI_MSG_PROGCHANGE :
 						cin = USB_MIDI_CIN_PROGCHANGE;
-						bytecnt = 1;
+						bytesinpacket = 1;
 						break;
 					case MIDI_MSG_CHANNELPRESSURE :
 						cin = USB_MIDI_CIN_CHANPRESSURE;
-						bytecnt = 1;
+						bytesinpacket = 1;
 						break;
 					case MIDI_MSG_PITCHBEND :
 						cin = USB_MIDI_CIN_PITCHBEND;
-						bytecnt = 2;
+						bytesinpacket = 2;
 						break;
 					case MIDI_MSG_SOX :
 						// this is cheating, because I don't handle SOX here, but I need
@@ -292,24 +315,24 @@ bool MIDIUART_readMessage(MIDI_Event_Packet_t *mep) {
 						case  MIDI_MSG_SS :
 							// two-byte System Common (one data byte)
 							cin = USB_MIDI_CIN_SYSCOM2;
-							bytecnt = 1;
+							bytesinpacket = 1;
 							break;
 						case MIDI_MSG_SPP :
 							// three byte System Common (two data bytes)
 							cin = USB_MIDI_CIN_SYSCOM3;
-							bytecnt = 2;
+							bytesinpacket = 2;
 							break;
 						case MIDI_MSG_F4 :
 						case MIDI_MSG_F5 :
 						case MIDI_MSG_TUNEREQ :
 							// one byte System Common (no data byte)
 							cin = USB_MIDI_CIN_SYSEND1;
-							bytecnt = 0;
+							bytesinpacket = 0;
 							break;
 						default :
 							// the rest are Real Time messages with no data.
 							cin = USB_MIDI_CIN_SINGLEBYTE;
-							bytecnt = 0;
+							bytesinpacket = 0;
 							break;
 						} // inner switch (if MIDI_MSG_SOX)
 						break;
@@ -320,12 +343,13 @@ bool MIDIUART_readMessage(MIDI_Event_Packet_t *mep) {
 
 					// now we know how many bytes we need to fetch from the FIFO
 					// to finish up this packet, so set the next state properly.
-					if (0 == bytecnt) {
+					if (0 == bytesinpacket) {
 						// we do not need to fetch any more bytes for this packet.
 						done = true;
 						state = MU_IDLE;
 					} else {
 						// we need to fill at least mep->byte2 and possibly byte3
+						bytecnt = bytesinpacket;
 						state = MU_DATABYTE2;
 					}
 
