@@ -29,9 +29,10 @@
 extern bit newIncomingPacket;
 extern SI_SEGMENT_VARIABLE(EndpointBuffer, MIDI_Event_Packet_t, SI_SEG_XDATA);
 extern SI_SEGMENT_VARIABLE(midiUsbOutPacket, MIDI_Event_Packet_t, SI_SEG_XDATA);
+extern uint8_t callcnt;
 
 
-//-----------------------------------------------------------------------------
+//---------------------------------	--------------------------------------------
 // Functions
 //-----------------------------------------------------------------------------
 
@@ -41,12 +42,13 @@ void USBD_SofCb(uint16_t sofNr) {
 
 uint16_t USBD_XferCompleteCb(uint8_t epAddr, USB_Status_TypeDef status,
 		uint16_t xferred, uint16_t remaining) {
-	  UNREFERENCED_ARGUMENT(xferred);
-	  UNREFERENCED_ARGUMENT(remaining);
 
-	P3_B4 = ~P3_B4;
-	if (status == USB_STATUS_OK) {
-		if (epAddr == 2) {
+	UNREFERENCED_ARGUMENT(xferred);
+	UNREFERENCED_ARGUMENT(remaining);
+	if (epAddr == 2) {
+		if (status == USB_STATUS_OK) {
+			P3_B4 = ~P3_B4;
+			callcnt++;
 			// copy contents of the endpoint buffer to the
 			// working buffer which will be parsed.
 			midiUsbOutPacket.event = EndpointBuffer.event;
@@ -55,14 +57,19 @@ uint16_t USBD_XferCompleteCb(uint8_t epAddr, USB_Status_TypeDef status,
 			midiUsbOutPacket.byte3 = EndpointBuffer.byte3;
 			// tell the world we have a new packet.
 			newIncomingPacket = 1;
-#if 1
-			USBD_Read(EP1OUT, (uint8_t *) &EndpointBuffer,
-					sizeof(MIDI_Event_Packet_t), // midi messages are four bytes
-					true); // we need the transfer-complete callback.
-#endif
 
+		} else if (status == USB_STATUS_EP_RX_BUFFER_OVERRUN) {
+			P3_B1 = ~P3_B1;	// also a nice breakpoint
+		// there is something in the EP FIFO, so we need to get it.
 		}
 	}
+
+	// prepare the next buffer.
+	USBD_Read(EP1OUT, (uint8_t *) &EndpointBuffer,
+			sizeof(MIDI_Event_Packet_t), // midi messages are four bytes
+			true); // we need the transfer-complete callback.
+
+	// always return zero for bulk endpoints.
 	return 0;
 }
 

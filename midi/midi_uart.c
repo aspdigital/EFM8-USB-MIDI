@@ -89,8 +89,11 @@ static uint8_t MIDIUART_rxFifoPop(void) {
  */
 void MIDIUART_init(void) {
 #if 1
-	for (rxfifoptr.count = 0;rxfifoptr.count < MIDI_UART_FIFO_SIZE; rxfifoptr.count++)
+	// useful for debug!
+	for (rxfifoptr.count = 0;rxfifoptr.count < MIDI_UART_FIFO_SIZE; rxfifoptr.count++) {
 		rxfifobuf[rxfifoptr.count] = 0;
+		txfifobuf[rxfifoptr.count] = 0;
+	}
 #endif
 
 	rxfifoptr.head = 0;

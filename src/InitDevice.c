@@ -774,7 +774,7 @@ extern void PORTS_3_enter_DefaultMode_from_RESET(void) {
 
 	// $[P3MDOUT - Port 3 Output Mode]
 	/***********************************************************************
-	 - P3.0 output is open-drain
+	 - P3.0 output is push-pull, all are.
 	 - P3.1 output is open-drain
 	 - P3.2 output is open-drain
 	 - P3.3 output is push-pull
@@ -783,10 +783,10 @@ extern void PORTS_3_enter_DefaultMode_from_RESET(void) {
 	 - P3.6 output is open-drain
 	 - P3.7 output is open-drain
 	 ***********************************************************************/
-	P3MDOUT = P3MDOUT_B0__OPEN_DRAIN | P3MDOUT_B1__OPEN_DRAIN
-			| P3MDOUT_B2__OPEN_DRAIN | P3MDOUT_B3__PUSH_PULL
+	P3MDOUT = P3MDOUT_B0__PUSH_PULL | P3MDOUT_B1__PUSH_PULL
+			| P3MDOUT_B2__PUSH_PULL | P3MDOUT_B3__PUSH_PULL
 			| P3MDOUT_B4__PUSH_PULL | P3MDOUT_B5__PUSH_PULL
-			| P3MDOUT_B6__OPEN_DRAIN | P3MDOUT_B7__OPEN_DRAIN;
+			| P3MDOUT_B6__PUSH_PULL | P3MDOUT_B7__PUSH_PULL;
 	// [P3MDOUT - Port 3 Output Mode]$
 
 	// $[P3MDIN - Port 3 Input Mode]
@@ -794,10 +794,7 @@ extern void PORTS_3_enter_DefaultMode_from_RESET(void) {
 
 	// $[P3SKIP - Port 3 Skip]
 	// [P3SKIP - Port 3 Skip]$
-	P3_B4 = 0;
-	P3_B5 = 0;
-	P3_B6 = 0;
-
+	P3 = 0x00;
 }
 
 extern void TIMER16_5_enter_DefaultMode_from_RESET(void) {
