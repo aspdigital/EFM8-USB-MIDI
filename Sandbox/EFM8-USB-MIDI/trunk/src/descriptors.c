@@ -185,7 +185,7 @@ SI_SEGMENT_VARIABLE(configDesc[],
 				USB_ENDPOINT_DESCRIPTOR,		// bDescriptorType
 				0x81,							// bEndpointAddress
 				USB_EPTYPE_BULK,				// bmAttributes
-				htole16(0x0040),				// wMaxPacketSize
+				htole16(SLAB_USB_EP1IN_MAX_PACKET_SIZE),	// wMaxPacketSize
 				0,								// bInterval
 
 		// .InEP1_CS_Desc = {
@@ -200,7 +200,7 @@ SI_SEGMENT_VARIABLE(configDesc[],
 				USB_ENDPOINT_DESCRIPTOR,	// bDescriptorType
 				0x01,						// bEndpointAddress
 				USB_EPTYPE_BULK,			// bmAttributes
-				htole16(0x0040),			// wMaxPacketSize
+				htole16(SLAB_USB_EP1OUT_MAX_PACKET_SIZE),	// wMaxPacketSize
 				0,							// bInterval
 
 		// .OutEP1_CS_Desc = {

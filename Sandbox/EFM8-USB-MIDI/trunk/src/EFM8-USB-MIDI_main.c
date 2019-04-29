@@ -62,6 +62,8 @@ SI_SEGMENT_VARIABLE(midiUsbOutPacket, MIDI_Event_Packet_t, SI_SEG_XDATA);
 // flag indicating a new packet, set in the callback for the EP1 OUT interrupt.
 volatile bit newIncomingPacket;
 
+volatile uint8_t callcnt;
+
 //-----------------------------------------------------------------------------
 // SiLabs_Startup() Routine
 // ----------------------------------------------------------------------------
@@ -139,6 +141,8 @@ int main(void) {
 	bit RBState;
 	bool usbIntsEnabled;
 
+	callcnt = 0;
+
 	// Call hardware initialization routine
 	enter_DefaultMode_from_RESET();
 #if 0
@@ -155,6 +159,14 @@ int main(void) {
 	LBState = 0;
 	RBState = 0;
 	newIncomingPacket = 0;
+	EndpointBuffer.event = 0x00;
+	EndpointBuffer.byte1 = 0x00;
+	EndpointBuffer.byte2 = 0x00;
+	EndpointBuffer.byte3 = 0x00;
+	midiUsbOutPacket.event = 0x00;
+	midiUsbOutPacket.byte1 = 0x00;
+	midiUsbOutPacket.byte2 = 0x00;
+	midiUsbOutPacket.byte3 = 0x00;
 
 	MIDIUART_init();
 
@@ -167,8 +179,13 @@ int main(void) {
 	 * Remember, this provides packets for ALL ports.
 	 */
 
+	usbIntsEnabled = USB_GetIntsEnabled();
+	USB_DisableInts();
 	USBD_Read(EP1OUT, (uint8_t *) &EndpointBuffer, sizeof(MIDI_Event_Packet_t), // midi messages are four bytes
 			true); // we need the transfer-complete callback.
+	if (usbIntsEnabled)
+		USB_EnableInts();
+
 	// start timer for joystick.
 	MsgToUartSize = SFRPAGE;
 	SFRPAGE = CONFIG_PAGE;
@@ -264,12 +281,6 @@ int main(void) {
 		// did we get a new event?
 		if (newIncomingPacket) {
 			newIncomingPacket = 0;
-			// prepare for the next message packet.
-#if 0
-			USBD_Read(EP1OUT, (uint8_t *) &EndpointBuffer,
-					sizeof(MIDI_Event_Packet_t), // midi messages are four bytes
-					true);// we need the transfer-complete callback.
-#endif
 			// if it targets the hardware port, just pass it along.
 			// We don't care much about the particular event, just the port (Cable Number).
 			// the buffer is only three bytes because the USB packet can only give us
