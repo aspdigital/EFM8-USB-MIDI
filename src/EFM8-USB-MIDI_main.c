@@ -56,13 +56,7 @@
  */
 
 // this buffer is used for the USBD_Read().
-SI_SEGMENT_VARIABLE(EndpointBuffer, MIDI_Event_Packet_t, SI_SEG_XDATA);
-// this buffer is filled by the callback with the contents of midiInReadMsg:
-SI_SEGMENT_VARIABLE(midiUsbOutPacket, MIDI_Event_Packet_t, SI_SEG_XDATA);
-// flag indicating a new packet, set in the callback for the EP1 OUT interrupt.
-volatile bit newIncomingPacket;
-
-volatile uint8_t callcnt;
+extern SI_SEGMENT_VARIABLE(EndpointBuffer, MIDI_Event_Packet_t, SI_SEG_IDATA);
 
 //-----------------------------------------------------------------------------
 // SiLabs_Startup() Routine
@@ -135,13 +129,12 @@ int main(void) {
 //	uint16_t lastTick;
 	MIDI_Event_Packet_t uimep;		// user interface MIDI events we write to the host
 	MIDI_Event_Packet_t spmep;		// events received on serial MIDI in we write to the host
+	MIDI_Event_Packet_t usbmep;		// events received from USB endpoint
 	uint8_t MsgToUart[3];			// MIDI messages we write to the serial transmitter
 	uint8_t MsgToUartSize;			// how many bytes in that message?
 	bit LBState;
 	bit RBState;
 	bool usbIntsEnabled;
-
-	callcnt = 0;
 
 	// Call hardware initialization routine
 	enter_DefaultMode_from_RESET();
@@ -158,15 +151,14 @@ int main(void) {
 
 	LBState = 0;
 	RBState = 0;
-	newIncomingPacket = 0;
 	EndpointBuffer.event = 0x00;
 	EndpointBuffer.byte1 = 0x00;
 	EndpointBuffer.byte2 = 0x00;
 	EndpointBuffer.byte3 = 0x00;
-	midiUsbOutPacket.event = 0x00;
-	midiUsbOutPacket.byte1 = 0x00;
-	midiUsbOutPacket.byte2 = 0x00;
-	midiUsbOutPacket.byte3 = 0x00;
+	usbmep.event = 0x00;
+	usbmep.byte1 = 0x00;
+	usbmep.byte2 = 0x00;
+	usbmep.byte3 = 0x00;
 
 	MIDIUART_init();
 
@@ -278,19 +270,23 @@ int main(void) {
 				USB_EnableInts();
 		} // Joystick X
 
+		/*
+		 * Pop the MIDI message stack for the next event message and parse it.
+		 */
 		// did we get a new event?
-		if (newIncomingPacket) {
-			newIncomingPacket = 0;
+		if (MIDIFIFO_Pop(&usbmep)) {
+			usbIntsEnabled = USB_GetIntsEnabled();
+			USB_DisableInts();
 			// if it targets the hardware port, just pass it along.
 			// We don't care much about the particular event, just the port (Cable Number).
 			// the buffer is only three bytes because the USB packet can only give us
 			// up to three bytes at a time.
-			if (USB_MIDI_CABLE_NUMBER(midiUsbOutPacket.event) == UART_CN) {
-				MsgToUart[0] = midiUsbOutPacket.byte1;
-				MsgToUart[1] = midiUsbOutPacket.byte2;
-				MsgToUart[2] = midiUsbOutPacket.byte3;
+			if (USB_MIDI_CABLE_NUMBER(usbmep.event) == UART_CN) {
+				MsgToUart[0] = usbmep.byte1;
+				MsgToUart[1] = usbmep.byte2;
+				MsgToUart[2] = usbmep.byte3;
 
-				switch (USB_MIDI_CODE_INDEX_NUMBER(midiUsbOutPacket.event)) {
+				switch (USB_MIDI_CODE_INDEX_NUMBER(usbmep.event)) {
 				case USB_MIDI_CIN_SYSEND1:
 				case USB_MIDI_CIN_SINGLEBYTE:
 					MsgToUartSize = 1;
@@ -308,36 +304,38 @@ int main(void) {
 
 				MIDIUART_writeMessage(MsgToUart, MsgToUartSize);
 
-			} else if (USB_MIDI_CABLE_NUMBER(midiUsbOutPacket.event)
+			} else if (USB_MIDI_CABLE_NUMBER(usbmep.event)
 					== VIRTUAL_CN) {
 
-				if (midiUsbOutPacket.byte1
+				if (usbmep.byte1
 						== MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0)) {
-					switch (midiUsbOutPacket.byte2) {
+					switch (usbmep.byte2) {
 					case 80: // left button
-						RGB_CEX_GREEN = midiUsbOutPacket.byte3 << 1;
+						RGB_CEX_GREEN = usbmep.byte3 << 1;
 						RGB_CEX_RED = 0;
 						RGB_CEX_BLUE = 0;
 						break;
 					case 81: // right button
 						RGB_CEX_GREEN = 0;
-						RGB_CEX_RED = midiUsbOutPacket.byte3 << 1;
+						RGB_CEX_RED = usbmep.byte3 << 1;
 						RGB_CEX_BLUE = 0;
 						break;
 					case 82: // joystick X
 						RGB_CEX_GREEN = 0;
 						RGB_CEX_RED = 0;
-						RGB_CEX_BLUE = midiUsbOutPacket.byte3 << 1;
+						RGB_CEX_BLUE = usbmep.byte3 << 1;
 						break;
 					case 83: // joystick Y
 						RGB_CEX_GREEN = 0; //midiInMsg.byte3 << 1;
 						RGB_CEX_RED = 0;
-						RGB_CEX_BLUE = midiUsbOutPacket.byte3 << 1;
+						RGB_CEX_BLUE = usbmep.byte3 << 1;
 						break;
 					} // switch
 				} // event
 			} // which cable number?
-		} // newInEvent
+			if (usbIntsEnabled)
+				USB_EnableInts();
+		} // if there's a message in the FIFO
 
 		/*
 		 * Handle messages received on the hardware IN port.
