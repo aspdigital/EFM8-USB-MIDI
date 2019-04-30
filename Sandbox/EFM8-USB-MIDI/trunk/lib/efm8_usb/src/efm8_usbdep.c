@@ -313,7 +313,7 @@ void handleUsbIn3Int(void)
 }
 #endif // SLAB_USB_EP3IN_USED
 
-#if SLAB_USB_EP1OUT_USED
+#if SLAB_USB_EP1OUT_USED && USE_SLAB_EP1OUT_HANDLER
 /***************************************************************************//**
  * @brief       Handle Endpoint 1 OUT transfer interrupt
  * @note        This function takes no parameters, but it uses the EP1OUT status
