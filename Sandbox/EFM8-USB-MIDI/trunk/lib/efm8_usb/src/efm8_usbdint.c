@@ -76,6 +76,8 @@ void usbIrqHandler(void)
   USBD_EnterHandler();
 #endif
 
+//  P3_B0 = 1;
+
   // Get the interrupt sources
   statusCommon = USB_GetCommonInts();
   statusIn = USB_GetInInts();
@@ -206,6 +208,8 @@ void usbIrqHandler(void)
 
   // Restore index
   USB_SetIndex(indexSave);
+
+//  P3_B0 = 0;
 
 #if SLAB_USB_HANDLER_CB
   // Callback to user before exiting

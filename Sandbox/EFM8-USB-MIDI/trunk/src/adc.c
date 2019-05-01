@@ -40,9 +40,12 @@ SI_INTERRUPT (ADC0EOC_ISR, ADC0EOC_IRQn)
 {
   uint32_t mV;
 
+//  P3_B0 = 1;
+
   ADC0CN0_ADINT = 0; // Clear ADC0 conv. complete flag
 
   mV = (ADC0 * (uint32_t) 3300) / 1023;
 
   joystickDirection = JOYSTICK_convert_mv_to_direction(mV);
+//  P3_B0 = 0;
 }

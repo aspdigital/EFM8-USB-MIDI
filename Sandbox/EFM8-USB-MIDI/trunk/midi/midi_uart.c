@@ -73,7 +73,6 @@ SI_INTERRUPT (UART1_ISR, UART1_IRQn)
  */
 static uint8_t MIDIUART_rxFifoPop(void) {
 	uint8_t c;
-	P3_B0 = ~P3_B0;
 	c = rxfifobuf[rxfifoptr.tail];
 	rxfifoptr.tail++;
 	if (rxfifoptr.tail >= MIDI_UART_FIFO_SIZE) {
@@ -111,10 +110,11 @@ void MIDIUART_init(void) {
  * This will block until the entire message was written to the FIFO.
  */
 void MIDIUART_writeMessage(uint8_t *msg, uint8_t msize) {
-
 	while (msize > 0) {
 		// block until we have space.
-		while (txfifoptr.count >= MIDI_UART_FIFO_SIZE);
+		while (txfifoptr.count >= MIDI_UART_FIFO_SIZE)
+			P3_B0 = 1;
+		P3_B0 = 0;
 
 		// push the byte.
 		txfifobuf[txfifoptr.head] = *msg++;

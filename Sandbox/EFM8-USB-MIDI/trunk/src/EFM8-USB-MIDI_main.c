@@ -174,7 +174,7 @@ int main(void) {
 	usbIntsEnabled = USB_GetIntsEnabled();
 	USB_DisableInts();
 	USBD_Read(EP1OUT, (uint8_t *) &EndpointBuffer, sizeof(MIDI_Event_Packet_t), // midi messages are four bytes
-			true); // we need the transfer-complete callback.
+			false); // callback not implemented.
 	if (usbIntsEnabled)
 		USB_EnableInts();
 
@@ -275,8 +275,9 @@ int main(void) {
 		 */
 		// did we get a new event?
 		if (MIDIFIFO_Pop(&usbmep)) {
-			usbIntsEnabled = USB_GetIntsEnabled();
-			USB_DisableInts();
+			P3_B3 = 1;
+//			usbIntsEnabled = USB_GetIntsEnabled();
+//			USB_DisableInts();
 			// if it targets the hardware port, just pass it along.
 			// We don't care much about the particular event, just the port (Cable Number).
 			// the buffer is only three bytes because the USB packet can only give us
@@ -302,7 +303,9 @@ int main(void) {
 					break;
 				} // switch
 
+//				P3_B0 = 1;
 				MIDIUART_writeMessage(MsgToUart, MsgToUartSize);
+//				P3_B0 = 0;
 
 			} else if (USB_MIDI_CABLE_NUMBER(usbmep.event)
 					== VIRTUAL_CN) {
@@ -333,8 +336,10 @@ int main(void) {
 					} // switch
 				} // event
 			} // which cable number?
-			if (usbIntsEnabled)
-				USB_EnableInts();
+//			if (usbIntsEnabled)
+//				USB_EnableInts();
+
+			P3_B3 = 0;
 		} // if there's a message in the FIFO
 
 		/*
