@@ -45,19 +45,25 @@ void USBD_SofCb(uint16_t sofNr) {
 uint16_t USBD_XferCompleteCb(uint8_t epAddr, USB_Status_TypeDef status,
 		uint16_t xferred, uint16_t remaining) {
 
-	UNREFERENCED_ARGUMENT(epAddr);
-	UNREFERENCED_ARGUMENT(status);
-	UNREFERENCED_ARGUMENT(remaining);
-	MIDI_Event_Packet_t mep;
-	uint8_t *epb = EndpointBuffer;
 
 #if USE_SLAB_EP1OUT_HANDLER == 1
+	MIDI_Event_Packet_t mep;
+	uint8_t *epb;
+	epb = EndpointBuffer;
 	while (xferred) {
 		mep.event = *epb++;
+		mep.byte1 = *epb++;
+		mep.byte2 = *epb++;
+		mep.byte3 = *epb++;
+		MIDIFIFO_Push(&mep);
+		xferred -= 4;
 	}
 #else
 	UNREFERENCED_ARGUMENT(xferred);
 #endif
+	UNREFERENCED_ARGUMENT(epAddr);
+	UNREFERENCED_ARGUMENT(status);
+	UNREFERENCED_ARGUMENT(remaining);
 
 	// always return zero for bulk endpoints.
 	return 0;
