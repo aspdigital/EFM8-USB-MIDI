@@ -55,8 +55,11 @@
  * first buffer are copied into it in the transfer-complete callback.
  */
 
-// this buffer is used for the USBD_Read().
+#if USE_SLAB_EP1OUT_HANDLER == 0
 extern SI_SEGMENT_VARIABLE(EndpointBuffer, MIDI_Event_Packet_t, SI_SEG_IDATA);
+#else
+extern SI_SEGMENT_VARIABLE(EndpointBuffer[SLAB_USB_EP1OUT_MAX_PACKET_SIZE], uint8_t, SI_SEG_IDATA);
+#endif
 
 //-----------------------------------------------------------------------------
 // SiLabs_Startup() Routine
@@ -151,16 +154,24 @@ int main(void) {
 
 	LBState = 0;
 	RBState = 0;
+
+#if USE_SLAB_EP1OUT_HANDLER == 0
 	EndpointBuffer.event = 0x00;
 	EndpointBuffer.byte1 = 0x00;
 	EndpointBuffer.byte2 = 0x00;
 	EndpointBuffer.byte3 = 0x00;
+#else
+	for (MsgToUartSize = 0; MsgToUartSize < SLAB_USB_EP1OUT_MAX_PACKET_SIZE; MsgToUartSize++) {
+		EndpointBuffer[MsgToUartSize] = 0;
+	}
+#endif
 	usbmep.event = 0x00;
 	usbmep.byte1 = 0x00;
 	usbmep.byte2 = 0x00;
 	usbmep.byte3 = 0x00;
 
 	MIDIUART_init();
+	MIDIFIFO_Init();
 
 	// this is brute force.
 	// for now, no point in going further until USB connects.
@@ -173,8 +184,13 @@ int main(void) {
 
 	usbIntsEnabled = USB_GetIntsEnabled();
 	USB_DisableInts();
+#if USE_SLAB_EP1OUT_HANDLER == 0
 	USBD_Read(EP1OUT, (uint8_t *) &EndpointBuffer, sizeof(MIDI_Event_Packet_t), // midi messages are four bytes
 			false); // callback not implemented.
+#else
+	USBD_Read(EP1OUT, &EndpointBuffer, SLAB_USB_EP1OUT_MAX_PACKET_SIZE, // midi messages are four bytes
+			true); // use callback to move data from endpoint to MIDI FIFO.
+#endif
 	if (usbIntsEnabled)
 		USB_EnableInts();
 
