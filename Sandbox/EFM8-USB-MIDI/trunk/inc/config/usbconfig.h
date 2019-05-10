@@ -66,7 +66,7 @@
 // -----------------------------------------------------------------------------
 // $[Endpoint Max Packet Size]
 #define SLAB_USB_EP1IN_MAX_PACKET_SIZE         64
-#define SLAB_USB_EP1OUT_MAX_PACKET_SIZE        8
+#define SLAB_USB_EP1OUT_MAX_PACKET_SIZE        32
 #define SLAB_USB_EP2IN_MAX_PACKET_SIZE         1
 #define SLAB_USB_EP2OUT_MAX_PACKET_SIZE        1
 #define SLAB_USB_EP3IN_MAX_PACKET_SIZE         1
@@ -153,8 +153,8 @@
 #define SLAB_USB_POLLED_MODE                   0
 // [Polled Mode]$
 
-// so we don't use the SiLabs default handler.
-#define USE_SLAB_EP1OUT_HANDLER 0
+// so we use the SiLabs default handler.
+#define USE_SLAB_EP1OUT_HANDLER 1
 
 #endif // __SILICON_LABS_USBCONFIG_H
 

@@ -15,6 +15,7 @@
 //-----------------------------------------------------------------------------
 #include <SI_EFM8UB2_Register_Enums.h>
 #include <efm8_usb.h>
+#include "usb_midi.h"
 
 //-----------------------------------------------------------------------------
 // Constants
@@ -23,7 +24,11 @@
 //-----------------------------------------------------------------------------
 // Variables
 //-----------------------------------------------------------------------------
-
+#if USE_SLAB_EP1OUT_HANDLER == 0
+extern SI_SEGMENT_VARIABLE(EndpointBuffer, MIDI_Event_Packet_t, SI_SEG_IDATA);
+#else
+extern SI_SEGMENT_VARIABLE(EndpointBuffer[SLAB_USB_EP1OUT_MAX_PACKET_SIZE], uint8_t, SI_SEG_IDATA);
+#endif
 //---------------------------------	--------------------------------------------
 // Functions
 //-----------------------------------------------------------------------------
@@ -32,13 +37,27 @@ void USBD_SofCb(uint16_t sofNr) {
 	UNREFERENCED_ARGUMENT(sofNr);
 }
 
+/*
+ * In the callback, read four bytes from the endpoint buffer into a MIDI message
+ * packet and then push that packet into the MIDI data FIFO.
+ * We are going to assume that we have multiple-of-four bytes in the endpoint buffer.
+ */
 uint16_t USBD_XferCompleteCb(uint8_t epAddr, USB_Status_TypeDef status,
 		uint16_t xferred, uint16_t remaining) {
 
 	UNREFERENCED_ARGUMENT(epAddr);
 	UNREFERENCED_ARGUMENT(status);
-	UNREFERENCED_ARGUMENT(xferred);
 	UNREFERENCED_ARGUMENT(remaining);
+	MIDI_Event_Packet_t mep;
+	uint8_t *epb = EndpointBuffer;
+
+#if USE_SLAB_EP1OUT_HANDLER == 1
+	while (xferred) {
+		mep.event = *epb++;
+	}
+#else
+	UNREFERENCED_ARGUMENT(xferred);
+#endif
 
 	// always return zero for bulk endpoints.
 	return 0;
