@@ -177,22 +177,6 @@ int main(void) {
 	// for now, no point in going further until USB connects.
 	while (USBD_GetUsbState() != USBD_STATE_CONFIGURED)
 		;
-	/*
-	 * Prepare for the first USB packet with a MIDI message.
-	 * Remember, this provides packets for ALL ports.
-	 */
-
-	usbIntsEnabled = USB_GetIntsEnabled();
-	USB_DisableInts();
-#if USE_SLAB_EP1OUT_HANDLER == 0
-	USBD_Read(EP1OUT, (uint8_t *) &EndpointBuffer, sizeof(MIDI_Event_Packet_t), // midi messages are four bytes
-			false); // callback not implemented.
-#else
-	USBD_Read(EP1OUT, &EndpointBuffer, SLAB_USB_EP1OUT_MAX_PACKET_SIZE, // midi messages are four bytes
-			true); // use callback to move data from endpoint to MIDI FIFO.
-#endif
-	if (usbIntsEnabled)
-		USB_EnableInts();
 
 	// start timer for joystick.
 	MsgToUartSize = SFRPAGE;
