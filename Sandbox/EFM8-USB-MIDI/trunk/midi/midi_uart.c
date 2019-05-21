@@ -3,6 +3,14 @@
  *
  *  Created on: Apr 20, 2019
  *      Author: andy
+ *
+ *  Mods:
+ *  2019-05-21 andy: MIDIUART_writeMessage() returns true if the serial transmit
+ *  	FIFO has room for another four messages that is, it is below its almost-
+ *  	full threshold. This is used to determine whether the OUT endpoint, which
+ *  	is the source of data for the messages, should be armed again with a call
+ *  	to USBD_Read().
+ *
  */
 #include <SI_EFM8UB2_Register_Enums.h>
 #include "bsp_config.h"
@@ -26,6 +34,11 @@ static xdata uint8_t rxfifobuf[MIDI_UART_FIFO_SIZE];
 static data fifoptr_t txfifoptr;
 static xdata uint8_t txfifobuf[MIDI_UART_FIFO_SIZE];
 static bit txidle;	// indicates whether a new packet write needs to kick off transmit.
+
+// This is the almost-full threshold. It allows for at least one full endpoint
+// packet's worth of messages (four messages, 24 bytes total) plus some
+// headroom.
+#define MIDI_UART_ALMOST_FULL (MIDI_UART_FIFO_SIZE - 32)
 
 /*
  * UART ISR.
@@ -107,15 +120,15 @@ void MIDIUART_init(void) {
 
 /*
  * Write the given message to the UART's transmit FIFO.
- * This will block until the entire message was written to the FIFO.
+ * We don't have to be concerned that the FIFO will overflow, as we'll hold off
+ * USB OUT transactions if there isn't enough space here.
+ * We return TRUE if there _is_ space in the FIFO for another USB OUT packet's
+ * worth of messages.
  */
-void MIDIUART_writeMessage(uint8_t *msg, uint8_t msize) {
-	while (msize > 0) {
-		// block until we have space.
-		while (txfifoptr.count >= MIDI_UART_FIFO_SIZE)
-			P3_B0 = 1;
-		P3_B0 = 0;
-
+bool MIDIUART_writeMessage(uint8_t *msg, uint8_t msize)
+{
+	while (msize > 0)
+	{
 		// push the byte.
 		txfifobuf[txfifoptr.head] = *msg++;
 		txfifoptr.head++;
@@ -131,6 +144,7 @@ void MIDIUART_writeMessage(uint8_t *msg, uint8_t msize) {
 		}
 		--msize;
 	}
+	return (txfifoptr.count < MIDI_UART_ALMOST_FULL);
 }	// MIDIUART_writeMessage
 
 /*

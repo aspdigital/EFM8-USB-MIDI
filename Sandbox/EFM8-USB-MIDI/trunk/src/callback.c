@@ -45,6 +45,7 @@ void USBD_SofCb(uint16_t sofNr) {
  */
 void USBD_DeviceStateChangeCb(USBD_State_TypeDef oldState,
                               USBD_State_TypeDef newState) {
+	UNREFERENCED_ARGUMENT(oldState);
 	if (newState == USBD_STATE_CONFIGURED) {
 #if USE_SLAB_EP1OUT_HANDLER == 0
 		USBD_Read(EP1OUT, (uint8_t *) &EndpointBuffer, sizeof(MIDI_Event_Packet_t), // midi messages are four bytes
@@ -61,6 +62,8 @@ void USBD_DeviceStateChangeCb(USBD_State_TypeDef oldState,
  * In the callback, read four bytes from the endpoint buffer into a MIDI message
  * packet and then push that packet into the MIDI data FIFO.
  * We are going to assume that we have multiple-of-four bytes in the endpoint buffer.
+ * Endpoint is re-armed in main() after it determines there is space in various
+ * buffers to handle another packet.
  */
 uint16_t USBD_XferCompleteCb(uint8_t epAddr, USB_Status_TypeDef status,
 		uint16_t xferred, uint16_t remaining) {
@@ -78,8 +81,6 @@ uint16_t USBD_XferCompleteCb(uint8_t epAddr, USB_Status_TypeDef status,
 		MIDIFIFO_Push(&mep);
 		xferred -= 4;
 	}
-	USBD_Read(EP1OUT, &EndpointBuffer, SLAB_USB_EP1OUT_MAX_PACKET_SIZE, // midi messages are four bytes
-			true); // use callback to move data from endpoint to MIDI FIFO.
 #else
 	UNREFERENCED_ARGUMENT(xferred);
 #endif
