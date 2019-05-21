@@ -51,12 +51,12 @@
  * FIFO size.
  */
 #ifndef MIDI_UART_FIFO_SIZE
-#define MIDI_UART_FIFO_SIZE 128
+#define MIDI_UART_FIFO_SIZE (128)
 #endif
 
 void MIDIUART_init(void);
 
-void MIDIUART_writeMessage(uint8_t *msg, uint8_t msize);
+bool MIDIUART_writeMessage(uint8_t *msg, uint8_t msize);
 
 bool MIDIUART_readMessage(MIDI_Event_Packet_t *mep);
 

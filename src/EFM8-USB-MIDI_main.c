@@ -22,12 +22,77 @@
  *
  * USB MIDI OUT messages for port 1 are routed to UART1 for transmit.
  * The event part of the messages is stripped off and the three data bytes are
- * loaded into the UART's transmit buffer. The callback exists but isn't used
- * because it's not necessary.
+ * loaded into the UART's transmit buffer.
  *
  * Messages received on physical port 1 in have an event byte added and a USB
  * MIDI message is built from what was received, and that message is written
  * to the MIDI bulk IN endpoint.
+ *
+ **************************************************************************
+ * DATA HANDLING, USB OUT ENDPOINTS.  (over endpoint 1)
+ *
+ * To start accepting MIDI packets over USB, we call USBD_Read() in the device
+ * state change callback. This passes a user buffer and size to the endpoint
+ * interrupt handler. The buffer is the same size as the endpoint's maximum packet
+ * size.
+ *
+ * The host sends one or more MIDI packets, each four bytes, in each OUT transaction,
+ * and the bytes are all written to the endpoint FIFO. When the OUT transaction
+ * is complete, the endpoint interrupt handler is invoked. That handler copies
+ * the contents of the endpoint FIFO into the user buffer.
+ *
+ * The transfer-complete callback is invoked when either the host has sent MAX
+ * PACKET SIZE bytes or when all of the bytes in the transaction have been read
+ * from the endpoint FIFO. At that time, the user buffer contains all of the
+ * bytes from the OUT transaction, and we know how many bytes that is.
+ *
+ * In the callback, the bytes from the user buffer are read out and MIDI messages
+ * are built from each group of four bytes. Each message is pushed to a software
+ * message FIFO.
+ *
+ * In the main loop, that software message FIFO is popped and parsed. If it is
+ * intended for the "onboard controls" (the LEDs in this test case, but could be
+ * anything in a product), those controls are set. If the message is intended
+ * for the hardware (serial) MIDI OUT port, a message of the correct size is
+ * built and those bytes are pushed to the serial port transmit FIFO.
+ *
+ * Here is the rub. That serial port is much slower than USB and we can easily
+ * swamp it with messages. Therefore, we must signal to the host that we must
+ * wait for room in the serial MIDI transmit FIFO.
+ *
+ * It is not documented, but if the endpoint is enabled and its FIFO is filled,
+ * the SIE will NAK any further OUT transactions until there is sufficient room
+ * in the FIFO for the data.
+ *
+ * The trick to forcing that NAK, then, is to not read the endpoint FIFO, and
+ * the only way to (not) do that is to not call USBD_Read() to re-arm the
+ * endpoint. Not calling USBD_Read() means the interrupt handler sees the endpoint
+ * as not receiving, and so it won't pop the endpoint FIFO, allowing it to fill
+ * and ultimately let the SIE NAK any futher transactions. Any data in the FIFO
+ * will be read out once the USBD_Read() is finally called.
+ *
+ * So when to call USBD_Read()?
+ *
+ * The limiting factor is space in the serial transmit FIFO. We need to ensure
+ * that there's always enough space in it for at least one Endpoint Packet's
+ * worth of messages. With max packet size set to 32, that's at most 8 messages,
+ * which itself is at most 3 bytes per or 24 bytes total. We set the serial
+ * transmit FIFO almost-full threshold to that level.
+ *
+ * Therefore:
+ * a) The endpoint is "armed" at configuration end.
+ * b) It gets "disarmed" when an OUT transaction is handled and its contents are
+ * 	pushed to the MIDI message FIFO.
+ * c) After popping the MIDI message FIFO, we parse the message, and if intended
+ * 	for the serial port, we write it to the serial FIFO. That write function
+ * 	returns true if there is enough room in the serial FIFO for another whole
+ * 	USB packet of MIDI messages, we set a flag, and after all parsing is done,
+ * 	we call USBD_Read() to arm the endpoint.
+ *  If there were no messages intended for the serial port we arm the endpoint
+ * 	anyway. In any event, if we call USBD_Read() and the endpoint is already
+ * 	armed (by a previous call), that call just returns without doing anything.
+ *
+ **************************************************************************
  */
 
 //-----------------------------------------------------------------------------
@@ -135,9 +200,10 @@ int main(void) {
 	MIDI_Event_Packet_t usbmep;		// events received from USB endpoint
 	uint8_t MsgToUart[3];			// MIDI messages we write to the serial transmitter
 	uint8_t MsgToUartSize;			// how many bytes in that message?
-	bit LBState;
-	bit RBState;
-	bool usbIntsEnabled;
+	bit LBState;					// the left button's immediate state.
+	bit RBState;					// the right button's immediate state.
+	bool usbIntsEnabled;			// set if they are
+	bool roomInTxFifo;				// from call to MIDIUART_writeMessage()
 
 	// Call hardware initialization routine
 	enter_DefaultMode_from_RESET();
@@ -154,6 +220,7 @@ int main(void) {
 
 	LBState = 0;
 	RBState = 0;
+	roomInTxFifo = 1;		// yes, there is, at the start of time
 
 #if USE_SLAB_EP1OUT_HANDLER == 0
 	EndpointBuffer.event = 0x00;
@@ -276,8 +343,6 @@ int main(void) {
 		// did we get a new event?
 		if (MIDIFIFO_Pop(&usbmep)) {
 			P3_B3 = 1;
-//			usbIntsEnabled = USB_GetIntsEnabled();
-//			USB_DisableInts();
 			// if it targets the hardware port, just pass it along.
 			// We don't care much about the particular event, just the port (Cable Number).
 			// the buffer is only three bytes because the USB packet can only give us
@@ -304,7 +369,7 @@ int main(void) {
 				} // switch
 
 //				P3_B0 = 1;
-				MIDIUART_writeMessage(MsgToUart, MsgToUartSize);
+				roomInTxFifo = MIDIUART_writeMessage(MsgToUart, MsgToUartSize);
 //				P3_B0 = 0;
 
 			} else if (USB_MIDI_CABLE_NUMBER(usbmep.event)
@@ -336,8 +401,18 @@ int main(void) {
 					} // switch
 				} // event
 			} // which cable number?
-//			if (usbIntsEnabled)
-//				USB_EnableInts();
+
+			// Re-arm the endpoint if there is space in the serial port transmit
+			// FIFO to accept any messages for it.
+			// If we call this and the endpoint is already armed, it just returns
+			// with an "endpoint busy" message, and doesn't do anything else.
+			// That's fine.
+			if (roomInTxFifo) {
+				USBD_Read(EP1OUT,
+						&EndpointBuffer,
+						SLAB_USB_EP1OUT_MAX_PACKET_SIZE, // midi messages are four bytes
+						true); // use callback to move data from endpoint to MIDI FIFO.
+			}
 
 			P3_B3 = 0;
 		} // if there's a message in the FIFO
