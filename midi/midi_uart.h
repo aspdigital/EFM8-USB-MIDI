@@ -58,6 +58,12 @@ void MIDIUART_init(void);
 
 bool MIDIUART_writeMessage(uint8_t *msg, uint8_t msize);
 
+/*
+ * Return true if there's room in the transmit FIFO (same return as above).
+ */
+bool MIDIUART_isRoomInFifo(void);
+
+
 bool MIDIUART_readMessage(MIDI_Event_Packet_t *mep);
 
 
