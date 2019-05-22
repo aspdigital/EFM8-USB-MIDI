@@ -204,6 +204,7 @@ int main(void) {
 	bit RBState;					// the right button's immediate state.
 	bool usbIntsEnabled;			// set if they are
 	bool roomInTxFifo;				// from call to MIDIUART_writeMessage()
+	uint8_t pcnt;					// count packets
 
 	// Call hardware initialization routine
 	enter_DefaultMode_from_RESET();
@@ -221,6 +222,7 @@ int main(void) {
 	LBState = 0;
 	RBState = 0;
 	roomInTxFifo = 1;		// yes, there is, at the start of time
+	pcnt = 0;
 
 #if USE_SLAB_EP1OUT_HANDLER == 0
 	EndpointBuffer.event = 0x00;
@@ -368,9 +370,10 @@ int main(void) {
 					break;
 				} // switch
 
-//				P3_B0 = 1;
-				roomInTxFifo = MIDIUART_writeMessage(MsgToUart, MsgToUartSize);
-//				P3_B0 = 0;
+				P3_B0 = 1;
+				MIDIUART_writeMessage(MsgToUart, MsgToUartSize);
+				pcnt++;
+				P3_B0 = 0;
 
 			} else if (USB_MIDI_CABLE_NUMBER(usbmep.event)
 					== VIRTUAL_CN) {
@@ -402,20 +405,26 @@ int main(void) {
 				} // event
 			} // which cable number?
 
-			// Re-arm the endpoint if there is space in the serial port transmit
-			// FIFO to accept any messages for it.
-			// If we call this and the endpoint is already armed, it just returns
-			// with an "endpoint busy" message, and doesn't do anything else.
-			// That's fine.
-			if (roomInTxFifo) {
-				USBD_Read(EP1OUT,
-						&EndpointBuffer,
-						SLAB_USB_EP1OUT_MAX_PACKET_SIZE, // midi messages are four bytes
-						true); // use callback to move data from endpoint to MIDI FIFO.
-			}
-
 			P3_B3 = 0;
 		} // if there's a message in the FIFO
+
+		// Re-arm the endpoint if there is space in the serial port transmit
+		// FIFO to accept any messages for it.
+		// If we call this and the endpoint is already armed, it just returns
+		// with an "endpoint busy" message, and doesn't do anything else.
+		// That's fine.
+		roomInTxFifo = MIDIUART_isRoomInFifo();
+
+		if (roomInTxFifo && !USBD_EpIsBusy(EP1OUT)) {
+			USBD_Read(EP1OUT,
+					&EndpointBuffer,
+					SLAB_USB_EP1OUT_MAX_PACKET_SIZE, // midi messages are four bytes
+					true); // use callback to move data from endpoint to MIDI FIFO.
+		} else {
+			P3_B1 = 1;
+			P3_B1 = 0;
+		}
+
 
 		/*
 		 * Handle messages received on the hardware IN port.

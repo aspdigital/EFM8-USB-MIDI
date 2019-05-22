@@ -38,7 +38,7 @@ static bit txidle;	// indicates whether a new packet write needs to kick off tra
 // This is the almost-full threshold. It allows for at least one full endpoint
 // packet's worth of messages (four messages, 24 bytes total) plus some
 // headroom.
-#define MIDI_UART_ALMOST_FULL (MIDI_UART_FIFO_SIZE - 32)
+#define MIDI_UART_ALMOST_FULL (MIDI_UART_FIFO_SIZE / 2)
 
 /*
  * UART ISR.
@@ -146,6 +146,14 @@ bool MIDIUART_writeMessage(uint8_t *msg, uint8_t msize)
 	}
 	return (txfifoptr.count < MIDI_UART_ALMOST_FULL);
 }	// MIDIUART_writeMessage
+
+/*
+ * Return true if there's room in the transmit FIFO (same return as above).
+ */
+bool MIDIUART_isRoomInFifo(void)
+{
+	return (txfifoptr.count < MIDI_UART_ALMOST_FULL);
+}
 
 /*
  * Check to see if there is a new packet in the serial receive FIFO.
