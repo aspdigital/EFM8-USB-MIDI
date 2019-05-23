@@ -1,4 +1,4 @@
-/*
+/**
  * midi_uart.c
  *
  *  Created on: Apr 20, 2019
@@ -10,6 +10,7 @@
  *  	full threshold. This is used to determine whether the OUT endpoint, which
  *  	is the source of data for the messages, should be armed again with a call
  *  	to USBD_Read().
+ *  2019-05-23 andy: not any more it doesn't.
  *
  */
 #include <SI_EFM8UB2_Register_Enums.h>
@@ -18,7 +19,7 @@
 #include "usb_midi.h"
 #include "midi_uart.h"
 
-/*
+/**
  * Define a software FIFO for the UART. We need pointers and a buffer.
  * The buffer is defined outside of the structure so we can put it in
  * XDATA space while the pointers are in DATA space.
@@ -27,20 +28,20 @@ typedef struct {
 	uint8_t head;						/*!< Index of the head of the FIFO */
 	uint8_t tail;						/*!< Index of the tail of the FIFO */
 	uint8_t count;						/*!< Number of bytes in the FIFO */
-} fifoptr_t;
+} fifoptr_t;							/*!< This is the structure that holds FIFO pointers. */
 
-static data fifoptr_t rxfifoptr;
-static xdata uint8_t rxfifobuf[MIDI_UART_FIFO_SIZE];
-static data fifoptr_t txfifoptr;
-static xdata uint8_t txfifobuf[MIDI_UART_FIFO_SIZE];
-static bit txidle;	// indicates whether a new packet write needs to kick off transmit.
+static data fifoptr_t rxfifoptr;		/*!< Receive buffer pointers */
+static xdata uint8_t rxfifobuf[MIDI_UART_FIFO_SIZE];	/*!< Receiver buffer */
+static data fifoptr_t txfifoptr;		/*!< Transmit buffer pointers */
+static xdata uint8_t txfifobuf[MIDI_UART_FIFO_SIZE];	/*!< Transmit buffer */
+static bit txidle;	/*!< indicates whether a new packet write needs to kick off transmit. */
 
 // This is the almost-full threshold. It allows for at least one full endpoint
 // packet's worth of messages (four messages, 24 bytes total) plus some
 // headroom.
 #define MIDI_UART_ALMOST_FULL (MIDI_UART_FIFO_SIZE / 2)
 
-/*
+/**
  * UART ISR.
  *
  * Transmitter:
@@ -81,8 +82,11 @@ SI_INTERRUPT (UART1_ISR, UART1_IRQn)
 	} // receive interrupt
 } // UART1_ISR
 
-/*
+/**
  * Pop the receive FIFO. This will not be called if the FIFO is empty.
+ * (This function is not visible outside of this module.
+ *
+ * @returns The oldest byte in the FIFO.
  */
 static uint8_t MIDIUART_rxFifoPop(void) {
 	uint8_t c;
@@ -95,7 +99,7 @@ static uint8_t MIDIUART_rxFifoPop(void) {
 	return c;
 } // MIDIUART_rxFifoPop
 
-/*
+/**
  * Clear the FIFOs and all.
  * This should probably wrap up everything needed to configure the UART for this application.
  */
@@ -114,18 +118,21 @@ void MIDIUART_init(void) {
 	txfifoptr.head = 0;
 	txfifoptr.tail = 0;
 	txfifoptr.count = 0;
-	txidle = 1;
+	txidle = 1;				/*!< we start idled. */
 
 } // MIDIUART_init()
 
-/*
+/**
  * Write the given message to the UART's transmit FIFO.
  * We don't have to be concerned that the FIFO will overflow, as we'll hold off
  * USB OUT transactions if there isn't enough space here.
  * We return TRUE if there _is_ space in the FIFO for another USB OUT packet's
  * worth of messages.
+ *
+ * @param[in]  msg		Pointer to an array of bytes that comprise a MIDI message.
+ * @param[in]  msize	The number of bytes in that message.
  */
-bool MIDIUART_writeMessage(uint8_t *msg, uint8_t msize)
+void MIDIUART_writeMessage(uint8_t *msg, uint8_t msize)
 {
 	while (msize > 0)
 	{
@@ -144,18 +151,19 @@ bool MIDIUART_writeMessage(uint8_t *msg, uint8_t msize)
 		}
 		--msize;
 	}
-	return (txfifoptr.count < MIDI_UART_ALMOST_FULL);
 }	// MIDIUART_writeMessage
 
-/*
- * Return true if there's room in the transmit FIFO (same return as above).
+/**
+ * Check to see if there is room in the UART transmit FIFO for an endpoint
+ * packet's worth of messages.
+ * @return true if so.
  */
 bool MIDIUART_isRoomInFifo(void)
 {
 	return (txfifoptr.count < MIDI_UART_ALMOST_FULL);
 }
 
-/*
+/**
  * Check to see if there is a new packet in the serial receive FIFO.
  * This is implemented as a state machine.
  *
@@ -233,15 +241,24 @@ bool MIDIUART_isRoomInFifo(void)
  *******************************************************************************
  */
 typedef enum {
-	MU_IDLE,		// waiting to start a new packet
-	MU_DATABYTE2,	// next byte in will be for mep->byte2
-	MU_DATABYTE3,	// next byte in will be for mep->byte3
-	MU_SYSEX1,		// next byte in is 1st sysex byte, put in mep->byte2
-	MU_SYSEX2		// next byte in is 2nd sysex byte or EOX, put in mep->byte3
-} MIDIUART_state_t;
+	MU_IDLE,		//!< waiting to start a new packet
+	MU_DATABYTE2,	//!< next byte in will be for mep->byte2
+	MU_DATABYTE3,	//!< next byte in will be for mep->byte3
+	MU_SYSEX1,		//!< next byte in is 1st sysex byte, put in mep->byte2
+	MU_SYSEX2		//!< next byte in is 2nd sysex byte or EOX, put in mep->byte3
+} MIDIUART_state_t;	//!< State register type.
 
-
-bool MIDIUART_readMessage(MIDI_Event_Packet_t *mep) {
+/**
+ * Read bytes from the serial port receive FIFO and assemble them into a proper
+ * USB MIDI four-byte message packet.
+ * It reads however many bytes are in that FIFO. Depending on serial port traffic,
+ * more than one call may be required to complete a message.
+ * It returns true when a message has been fully assembled.
+ *
+ * @param[in,out] msg 	The assembled USB-MIDI message packet is returned here.
+ * @return True when msg contains an entire USB-MIDI message packet.
+ */
+bool MIDIUART_readMessage(USBMIDI_Message_t *msg) {
 	// these are newly assigned at every call.
 	bool done;				// indicates packet finished or not, the return value
 	uint8_t newbyte;		// read from FIFO
@@ -262,8 +279,8 @@ bool MIDIUART_readMessage(MIDI_Event_Packet_t *mep) {
 			case MU_IDLE :
 				// clear byte2 and byte3 here, on the chance that this newest message
 				// will not need them.
-				mep->byte2 = 0x00;
-				mep->byte3 = 0x00;
+				msg->byte2 = 0x00;
+				msg->byte3 = 0x00;
 
 				// Get the next byte in the FIFO.
 				newbyte = MIDIUART_rxFifoPop();
@@ -273,14 +290,14 @@ bool MIDIUART_readMessage(MIDI_Event_Packet_t *mep) {
 					// SYSEX messages require at least one data byte before EOX, so
 					// we must fetch it. At this point we don't know which CIN to use.
 					// But we do know that byte1 is the SOX byte.
-					mep->byte1 = MIDI_MSG_SOX;
+					msg->byte1 = MIDI_MSG_SOX;
 					state = MU_SYSEX1;
 
 				} else if (newbyte < 0x80) {
 					// running status now active. Use the previous CIN/CN and
 					// byte1 (the previous status). The byte we just read is
 					// byte2 of the packet.
-					mep->byte2 = newbyte;
+					msg->byte2 = newbyte;
 
 					// See if we need one more byte to complete the packet.
 					// If so, wait for it, otherwise this packet is done.
@@ -379,18 +396,18 @@ bool MIDIUART_readMessage(MIDI_Event_Packet_t *mep) {
 					}
 
 					// The status byte is byte 1 of our packet.
-					mep->byte1 = newbyte;
+					msg->byte1 = newbyte;
 
 					// and we know the event header byte from the Code Index Number
 					// we set above.
-					mep->event = USB_MIDI_EVENT(UART_CN, cin);
+					msg->event = USB_MIDI_EVENT(UART_CN, cin);
 
 				} // if newbyte
 				break; // out of idle.
 
 			case MU_DATABYTE2 :
 				// the next thing in the FIFO is byte2 of the midi event packet.
-				mep->byte2 = MIDIUART_rxFifoPop();
+				msg->byte2 = MIDIUART_rxFifoPop();
 				--bytecnt;
 
 				// if there is one more byte in this packet, we have to read it,
@@ -406,7 +423,7 @@ bool MIDIUART_readMessage(MIDI_Event_Packet_t *mep) {
 			case MU_DATABYTE3 :
 				// get the last byte of the packet from the serial receive FIFO,
 				// and we are done. we no longer care about bytecnt.
-				mep->byte3 = MIDIUART_rxFifoPop();
+				msg->byte3 = MIDIUART_rxFifoPop();
 				done = true;
 				state = MU_IDLE;
 				break;
@@ -414,13 +431,13 @@ bool MIDIUART_readMessage(MIDI_Event_Packet_t *mep) {
 			case MU_SYSEX1 :
 				// we are here because we got a SOX byte. There must be at least
 				// one data byte in a SYSEX packet, so read it from the FIFO.
-				mep->byte2 = MIDIUART_rxFifoPop();
+				msg->byte2 = MIDIUART_rxFifoPop();
 
 				// if this byte is EOX, then this is that special two-byte SysEx
 				// packet, which means we are done. it also means we know which
 				// CIN to assign.
-				if (mep->byte2 == MIDI_MSG_EOX) {
-					mep->event = USB_MIDI_EVENT(UART_CN, USB_MIDI_CIN_SYSEND2);
+				if (msg->byte2 == MIDI_MSG_EOX) {
+					msg->event = USB_MIDI_EVENT(UART_CN, USB_MIDI_CIN_SYSEND2);
 					done = true;
 					state = MU_IDLE;
 				} else {
@@ -432,18 +449,18 @@ bool MIDIUART_readMessage(MIDI_Event_Packet_t *mep) {
 			case MU_SYSEX2 :
 				// we are here because we are in a SysEx packet and there is another
 				// byte for it. This will fill the MIDI packet byte 3.
-				mep->byte3 = MIDIUART_rxFifoPop();
+				msg->byte3 = MIDIUART_rxFifoPop();
 
 				// if this byte is EOX, then we have the special three-byte SysEx
 				// packet, which means we are done. It also means we know which CIN
 				// to assign.
-				if (mep->byte3 == MIDI_MSG_EOX) {
-					mep->event = USB_MIDI_EVENT(UART_CN, USB_MIDI_CIN_SYSEND3);
+				if (msg->byte3 == MIDI_MSG_EOX) {
+					msg->event = USB_MIDI_EVENT(UART_CN, USB_MIDI_CIN_SYSEND3);
 					state = MU_IDLE;
 				} else {
 					// it's not the end of the packet. There is more. But we have
 					// completely filled our MIDI packet, so send it off.
-					mep->event = USB_MIDI_EVENT(UART_CN, USB_MIDI_CIN_SYSEXSTART);
+					msg->event = USB_MIDI_EVENT(UART_CN, USB_MIDI_CIN_SYSEXSTART);
 					// but we know that the next byte in the serial receive FIFO is
 					// part of the SysEx message, so go get it.
 					state = MU_SYSEX1;
