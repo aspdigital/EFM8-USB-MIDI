@@ -1,40 +1,38 @@
-/**************************************************************************//**
- * Copyright (c) 2015 by Silicon Laboratories Inc. All rights reserved.
+/**
+ * joybutton.c
  *
- * http://developer.silabs.com/legal/version/v11/Silicon_Labs_Software_License_Agreement.txt
- *****************************************************************************/
-/////////////////////////////////////////////////////////////////////////////
-// button.c
-/////////////////////////////////////////////////////////////////////////////
-
-/////////////////////////////////////////////////////////////////////////////
-// Includes
-/////////////////////////////////////////////////////////////////////////////
-
+ * Roll up all functions and features necessary to read the joystick position
+ * and the state of the two pushbuttons.
+ *
+ * Created from Silicon Labs example and extended.
+ *
+ * This code specifically targets the SiLabs EFM8UB2 Universal Bee Starter Kit
+ * (SLSTK2001A).
+ *
+ * Today is 22 May 2019.
+ *
+ * (c) 2019 ASP Digital
+ *
+ */
 #include "bsp.h"
-//#include "retargetserial.h"
+#include "joystick.h"		//!< This is in the efm8 BSP library
 #include "joybutton.h"
-#include "joystick.h"
-#include "adc.h"
 #include <string.h>
 
-//-----------------------------------------------------------------------------
-// Constants
-//-----------------------------------------------------------------------------
+/**
+ * Global set by the ADC ISR.
+ */
+uint8_t joystickDirection = JOYSTICK_NONE;	//!< should be obvious, no?
 
-//-----------------------------------------------------------------------------
-// Functions
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-// Joystick_GetStatus() Routine
-// ----------------------------------------------------------------------------
-//
-// Description - Get joystick status.
-//
-// Return - Which direction on the joystick has been pushed as well as which
-//          buttons have been pressed
-//-----------------------------------------------------------------------------
+//!-----------------------------------------------------------------------------
+//! Joystick_GetStatus() Routine
+//! ----------------------------------------------------------------------------
+//!
+//! Description - Get joystick status.
+//!
+//! Return - Which direction on the joystick has been pushed as well as which
+//!          buttons have been pressed
+//!-----------------------------------------------------------------------------
 
 uint8_t Joystick_GetStatus(void)
 {
@@ -67,5 +65,30 @@ uint8_t Joystick_GetStatus(void)
     }
 
 	return joyStatus;
-}
+} // Joystick_GetStatus()
+
+/**
+ * ADC ISR.
+ * The ADC conversion is started by Timer 5 overflow.
+ * When conversion is complete, this ISR is called.
+ *
+ * The ADC is read and we convert ADU to mV.
+ * We obtain the joystick direction from those mV.
+ *
+ * joystickDirection is a global defined above.
+ *
+ * It might be better to simply make mV the global and do the conversion to
+ * joystick direction out of the ISR.
+ */
+SI_INTERRUPT (ADC0EOC_ISR, ADC0EOC_IRQn)
+{
+  uint32_t mV;
+
+  ADC0CN0_ADINT = 0; // Clear ADC0 conv. complete flag
+
+  mV = (ADC0 * (uint32_t) 3300) / 1023;
+
+  joystickDirection = JOYSTICK_convert_mv_to_direction(mV);
+} // ADC0EOC_ISR
+
 
