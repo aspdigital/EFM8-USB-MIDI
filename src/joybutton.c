@@ -4,41 +4,46 @@
  * Roll up all functions and features necessary to read the joystick position
  * and the state of the two pushbuttons.
  *
- * Created from Silicon Labs example and extended.
+ * Created from Silicon Labs example and extended and contracted.
+ * The main program loop should periodically call JOYBUTTON_GetReport() to
+ * obtain the latest button and joystick states.
  *
  * This code specifically targets the SiLabs EFM8UB2 Universal Bee Starter Kit
  * (SLSTK2001A).
  *
- * Today is 22 May 2019.
+ * Today is 23 May 2019.
  *
  * (c) 2019 ASP Digital
  *
  */
-#include "bsp.h"
+#include "bsp_config.h"		//!< Board-specific definitions
 #include "joystick.h"		//!< This is in the efm8 BSP library
-#include "joybutton.h"
-#include <string.h>
+#include "joybutton.h"		//!< Header for functions and defines for this source
+#include <string.h>			//!< for memset
 
 /**
  * Global set by the ADC ISR.
  */
-uint8_t joystickDirection = JOYSTICK_NONE;	//!< should be obvious, no?
+volatile uint8_t joystickDirection = JOYSTICK_NONE;	//!< should be obvious, no?
 
-//!-----------------------------------------------------------------------------
-//! Joystick_GetStatus() Routine
-//! ----------------------------------------------------------------------------
-//!
-//! Description - Get joystick status.
-//!
-//! Return - Which direction on the joystick has been pushed as well as which
-//!          buttons have been pressed
-//!-----------------------------------------------------------------------------
-
-uint8_t Joystick_GetStatus(void)
+/*!
+ * Returns a report containing the state of the buttons and the joystick position.
+ * This uses constants, etc defined in the efm8_joystick library, which we might
+ * want to simplify.
+ *
+ * @param[out] jbr is structure which will contain the report.
+ */
+void JOYBUTTON_GetReport(joybuttonReport_t *jbr)
 {
-  uint8_t joyStatus = 0;
+	uint8_t joyStatus = 0;
 
-  // joystickDirection is declared in adc.h
+	memset(jbr, 0, sizeof(joybuttonReport_t));
+
+	/*
+	 * From most-recently-fetched joystick direction value, fill in the X and Y
+	 * part of the report.
+	 * Direction constants are as defined by the efm8_joystick library.
+	 */
 	switch (joystickDirection)
 	{
 	case JOYSTICK_N:    joyStatus |= JOY_UP;                break;
@@ -51,6 +56,7 @@ uint8_t Joystick_GetStatus(void)
 	case JOYSTICK_NW:   joyStatus |= JOY_UP | JOY_LEFT;     break;
 	}
 
+	/* Check button states to see if any were pressed. */
     if (!LEFT_BUTTON_PIN)
     {
         joyStatus |= LEFT_BUTTON;
@@ -64,8 +70,26 @@ uint8_t Joystick_GetStatus(void)
         joyStatus |= CENTER_BUTTON;
     }
 
-	return joyStatus;
-} // Joystick_GetStatus()
+    /*
+     * set the Button report value.
+     */
+	jbr->Button = joyStatus & BUTTON_MASK;
+
+    /*
+     * Determine X and Y report values from joystick direction.
+     */
+    if (joyStatus & JOY_UP) {
+		jbr->Y = 0x7F;
+	} else if (joyStatus & JOY_DOWN) {
+		jbr->Y = 0x01;
+	}
+
+	if (joyStatus & JOY_LEFT) {
+		jbr->X = 0x01;
+	} else if (joyStatus & JOY_RIGHT) {
+		jbr->X = 0x7F;
+	}
+} //JOYBUTTON_GetReport()
 
 /**
  * ADC ISR.
