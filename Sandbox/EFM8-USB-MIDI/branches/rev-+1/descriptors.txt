@@ -1,0 +1,244 @@
+descriptors.txt asp 2019 Apr 04.
+
+The descriptors for a USB-MIDI device which supports both IN and OUT are structured as follows.
+
+The device has two interfaces, the Audio Control and the MIDI Streaming. 
+
+The description of MIDI direction in the spec is somewhat confusing, perhaps because of nomenclature.
+
+The USB-MIDI Function is the whole design.
+
+The USB-MIDI Function must contain a USB-MIDI Converter (for obvious reasons).
+
+A MIDI In Jack represents a starting point for a MIDI data stream within the USB-MIDI Function. MIDI data streams
+enter the USB-MIDI function through MIDI In Jacks.
+
+A MIDI Out Jack represents an ending point for MIDI data streams. MIDI data streams leave the USB-MIDI Function
+though MIDI Out Jacks. 
+
+A USB Endpoint is a MIDI In or MIDI Out Jack. These are called Embedded MIDI Jacks.
+
+Physical MIDI connections are called External MIDI Jacks.
+
+The USB-MIDI Converter will provide a link between a MIDI OUT Endpoint and the associated Embedded MIDI In Jack.
+Data from the host to a MIDI Out Endpoint is routed to the USB-MIDI Function through one or more Embedded MIDI In
+jacks associated with that endpoint.
+
+Likewise, it provides a link between an Embedded MIDI Out Endpoint and the corresponding MIDI In Endpoint. Data
+going back to the host leave the USB-MIDI Function through one or more Embedded MIDI Out Jacks to the associated
+MIDI In Endpoint.
+
+External MIDI Jacks are connected to Embedded MIDI Jacks. So a MIDI Out Endpoint connects to an Embedded MIDI
+In Jack which connects to an External MIDI OUT Jack.
+
+THEREFORE:
+a. We support an external MIDI port (with IN and OUT) using UART1 because why not. These physical ports are
+implemented as External MIDI In and Out Jacks, and they connect to corresponding Embedded MIDI Out and In Jacks.
+
+b. We support an embedded MIDI IN port, associated with a MIDI OUT Endpoint, to set controls, and an Embedded MIDI
+OUT port is used to send front-panel control changes back through an Midi In Endpoint. I honestly don't know the
+right way to implement an Element (literally zero examples of this type of entity exist) so I use External MIDI
+jacks as the source of the knob/button changes and sink for control changes sent from the host.
+
+The endpoint descriptors have associated jack ID fields and they support multiple IDs.
+
+
+Audio Control interface uses the Control Endpoint 0. 
+MIDI Streaming uses bulk endpoints IN 1 and OUT 1.
+
+DEVICE DESCRIPTOR:
+	bLength:			0x12
+	bDescriptorType:	DEVICE
+	bcdUSB:				0x0200
+	bDeviceClass:		0x00	defined at interface level
+	bDeviceSubclass:	0x00	unused
+	bDeviceProtocol:	0x00	unused
+	bMaxPacketSize0:	0x40 	64 bytes
+	idVendor:			0x14c5
+	idProduct:			0x0666
+	bcdDevice:			0x0100
+	iManufacturer:		0x01
+	iProduct:			0x02
+	iSerialNumber:		0x03
+	bNumConfigurations:	0x01 One configuration
+	
+CONFIGURATION DESCRIPTOR:
+	HEADER --
+	bLength:			0x09
+	bDescriptorType:	0x02 CONFIGURATION
+	wTotalLength:		0x0085		Length of the entire configuration descriptor: 133
+								9 (CFG) + 9 (ACIF) + 9 (ACCSIF) + 9 (MSIF) + 7 (MSCSIF) + 
+								15 (jack 1,2) + 15 (jack 3,4) + 15 (jack 5, 6) + 15 (jack 7, 8) + 
+								9 (IN Bulk EP) + 6 (IN Bulk EP CS) + 9 (OUT Bulk EP) + 6 (OUT Bulk EP CS)
+	bNumInterfaces:		2 (AC and MS)
+	bConfigurationValue:1 ID of this configuration
+	iConfiguration:
+	bmAttributes:		self-powered, no remote wakeup
+	MaxPower:			0x32	100 mA
+	
+	AUDIO CONTROL INTERFACE standard interface descriptor
+	bLength:			0x09  size
+	bDescriptorType:	0x04 INTERFACE descriptor 
+	bInterfaceNumber:	0x00 index of this interface
+	bAlternateSetting:  0x00 this is the only setting
+	bNumEndpoints:		0x00 no endpoints, use control endpoint
+	bInterfaceClass:	0x01 AUDIO
+	bInterfaceSubclass: 0x01 AUDIO_CONTROL
+	bInterfaceProtocol: 0x00 not used
+	iInterface:			0x00 not used
+	
+	CLASS-SPECIFIC AC INTERFACE DESCRIPTOR
+	bLength:			0x09
+	bDescriptorType:	0x24	CS_INTERFACE
+	bDescriptorSubtype:	0x01	HEADER subtype
+	bcdADC:				0x0100	rev. of class spec 1.0
+	wTotalLength:		0x0009	Total size of class-specific descriptors (just this one!)
+	bInCollection:		0x01	Number of streaming interfaces
+	baInterfaceNr(1)	0x01	MIDIStreaming IF 1 belongs to this AC interface
+	
+	STANDARD MIDISTREAMING INTERFACE DESCRIPTOR
+	bLength:			0x09	length of this descriptor
+	bDescriptorType:	0x04	INTERFACE descriptor
+	bInterfaceNumber:	0x01	index of this interface
+	bAlternateSetting:	0x00	index of this alternate setting (the only one)
+	bNumEndpoints:		0x02	we use two bulk endpoints, one in, one out
+	bInterfaceClass:	0x01	AUDIO
+	bInterfaceSubclass:	0x03	MIDISTREAMING
+	bInterfaceProtocol:	0x00	unused
+	iInterface:			0x00	unused unless we add one
+	
+	CLASS-SPECIFIC MIDISTREAMING INTERFACE DESCRIPTOR
+	bLength:			0x07	length of this descriptor
+	bDescriptorType:	0x24	CS_INTERFACE
+	bDescriptorSubtype:	0x01	MS_HEADER
+	bcdADC:				0x0100	revision of this class spec
+	wTotalLength:		0x0061	total size of class-specific descriptors = 97
+								7 + 
+								6 + 9 + (jacks 1 and 2)
+								6 + 9 + (jacks 3 and 4)
+								6 + 9 + (jacks 5 and 6)
+								6 + 9 + (jacks 7 and 8)
+								9 + 6 + (IN endpoint)
+								9 + 6   (out endpoint)
+	
+	These are for the two physical MIDI jacks.
+	EMBEDDED MIDI IN JACK DESCRIPTOR (from Endpoint, to feed Physical MIDI OUT Jack)
+	bLength:			0x06	length of this descriptor
+	bDescriptorType:	0x24	CS_INTERFACE
+	bDescriptorSubtype:	0x02	MIDI_IN_JACK Descriptor
+	bJackType:			0x01	EMBEDDED Jack.
+	bJackID:			0x01	this is jack #1 (will give a #define)
+	iJack:				0x00	no string (yet)
+	
+	EXTERNAL MIDI OUT JACK DESCRIPTOR (fed from above)
+	bLength:			0x09	length of this descriptor
+	bDescriptorType:	0x24	CS_INTERFACE
+	bDescriptorSubtype:	0x03	MIDI_OUT_JACK descriptor
+	bJackType:			0x02	EXTERNAL jack
+	bJackID:			0x02	this is jack #2
+	bNrInputPins:		0x01	one input pin
+	BaSourceID(1):		0x01	ID of the source to which this is connected (jack above)
+	BaSourcePin(1):		0x01	Output pin number of the entity to which this is connected
+	iJack:				0x00	no string
+	
+	EXTERNAL MIDI IN JACK DESCRIPTOR
+	bLength:			0x06	length of this descriptor
+	bDescriptorType:	0x24	CS_INTERFACE
+	bDescriptorSubtype:	0x02	MIDI_IN_JACK Descriptor
+	bJackType:			0x02	EXTERNAL Jack.
+	bJackID:			0x03	this is jack #3 (will give a #define)
+	iJack:				0x00	no string (yet)
+	
+	EMBEDDED MIDI OUT JACK DESCRIPTOR (Feeds Endpoint from physical MIDI in jack)
+	bLength:			0x09
+	bDescriptorType:	0x24	CS_INTERFACE
+	bDescriptorSubtype:	0x03	MIDI_OUT_JACK descriptor
+	bJackType:			0x01	EMBEDDED jack
+	bJackID:			0x04	this is jack #4
+	bNrInputPins:		0x01	one input pin
+	BaSourceID(1):		0x03	ID of the source to which this is connected (jack above)
+	BaSourcePin(1):		0x01	Output pin number of the entity to which this is connected
+	iJack:				0x00	no string
+	
+	These are for the embedded jacks that control the compressor settings.
+	This Embedded MIDI In Jack feeds a pseudo "External" MIDI OUT jack which is used to set the controls.
+	EMBEDDED MIDI IN JACK DESCRIPTOR (from endpoint)
+	bLength:			0x06	length of this descriptor
+	bDescriptorType:	0x24	CS_INTERFACE
+	bDescriptorSubtype:	0x02	MIDI_IN_JACK Descriptor
+	bJackType:			0x01	EMBEDDED Jack.
+	bJackID:			0x05	this is jack #5 (will give a #define)
+	iJack:				0x00	no string (yet)
+	
+	EXTERNAL MIDI OUT JACK DESCRIPTOR (fed from above, sets the controls)
+	bLength:			0x09	length of this descriptor
+	bDescriptorType:	0x24	CS_INTERFACE
+	bDescriptorSubtype:	0x03	MIDI_OUT_JACK descriptor
+	bJackType:			0x02	EXTERNAL jack
+	bJackID:			0x06	this is jack #6
+	bNrInputPins:		0x01	one input pin
+	BaSourceID(1):		0x05	ID of the source to which this is connected (jack above)
+	BaSourcePin(1):		0x01	Output pin number of the entity to which this is connected
+	iJack:				0x00	no string
+	
+	This jack doesn't get fed by a physical jack, instead it takes physical knob and button changes
+	and feeds them to the endpoint via an embedded MIDI in jack.
+	EXTERNAL MIDI IN JACK DESCRIPTOR
+	bLength:			0x06	length of this descriptor
+	bDescriptorType:	0x24	CS_INTERFACE
+	bDescriptorSubtype:	0x02	MIDI_IN_JACK Descriptor
+	bJackType:			0x02	EXTERNAL Jack.
+	bJackID:			0x07	this is jack #7 (will give a #define)
+	iJack:				0x00	no string (yet)
+		
+	This Embedded MIDI Out jack feeds the endpoint with knob and button data from the above embedded MIDI IN.
+	EMBEDDED MIDI OUT JACK DESCRIPTOR (Feeds Endpoint)
+	bLength:			0x09	length of this descriptor.
+	bDescriptorType:	0x24	CS_INTERFACE
+	bDescriptorSubtype:	0x03	MIDI_OUT_JACK descriptor
+	bJackType:			0x01	EMBEDDED jack
+	bJackID:			0x08	this is jack #8
+	bNrInputPins:		0x01	one input pin
+	BaSourceID(1):		0x07	ID of the source to which this is connected (jack above)
+	BaSourcePin(1):		0x01	Output pin number of the entity to which this is connected
+	iJack:				0x00	no string
+	
+	ENDPOINT DESCRIPTORS.
+	STANDARD BULK IN ENDPOINT DESCRIPTOR, which takes knob/button data and MIDI IN physical jack data
+	and sends them to the host.
+	bLength:			0x09	length of this descriptor
+	bDescriptorType:	0x05	ENDPOINT descriptor
+	bEndpointAddress:	0x81	IN Endpoint 1
+	bmAttributes:		0x02	Bulk, not shared
+	wMaxPacketSize:		0x40	64 bytes per packet
+	bInterval:			0x00	ignored for bulk
+	bRefresh:			0x00	not used
+	bSynchAddress:		0x00	not used
+	
+	CLASS-SPECIFIC MIDI STREAMING BULK IN ENDPOINT DESCRIPTOR
+	bLength:			0x06	Length of this descriptor. 
+	bDescriptorType:	0x25	Class-specific endpoint descriptor
+	bDescriptorSubtype:	0x01	MIDI STREAMING GENERAL class-specific descriptor
+	bNumEmbMIDIJack		0x02	two embedded MIDI OUT jacks
+	BaAssocJackID(1)	0x04	ID of the first embedded MIDI OUT Jack
+	BaAssocJackID(2)	0x08	ID of the second 
+	
+	STANDARD BULK OUT ENDPOINT DESCRIPTOR, which sends data to the controls and to the physical jack
+	bLength:			0x09	length of this descriptor
+	bDescriptorType:	0x05	ENDPOINT descriptor
+	bEndpointAddress:	0x01	OUT Endpoint 1
+	bmAttributes:		0x02	Bulk, not shared
+	wMaxpacketSize:		0x40	64 bytes per packet
+	bInterval:			0x00	ignored for bulk
+	bRefresh:			0x00	not used
+	bSynchAddress:		0x00	not used
+	
+	CLASS-SPECIFIC MIDI STREAMING BULK OUT ENDPOINT DESCRIPTOR
+	bLength:			0x06	length of this descriptor
+	bDescriptorType:	0x25	CS_ENDPOINT descriptor
+	bDescriptorSubtype:	0x01	MS_GENERAL
+	bNumEmbMIDIJack:	0x02	two embedded MIDI IN jacks
+	BaAssocJackID(1):	0x01	ID of the first embedded MIDI IN jack
+	BaAssocJackID(2):	0x05	ID of the second embedded MIDI IN jack
+ 	
+	
