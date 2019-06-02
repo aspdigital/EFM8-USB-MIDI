@@ -47,49 +47,24 @@
 #include <SI_EFM8UB2_Register_Enums.h>
 #include "midi.h"
 
-/**
- * Define the MIDI UART FIFO size.
- * This applies to both transmit and receive FIFOs.
+/*
+ * FIFO size.
  */
 #ifndef MIDI_UART_FIFO_SIZE
 #define MIDI_UART_FIFO_SIZE (128)
 #endif
 
-/**
- * Clear the FIFOs and all.
- * This should probably wrap up everything needed to configure the UART for this application.
- */
 void MIDIUART_init(void);
 
-/**
- * Write the given message to the UART's transmit FIFO.
- * We don't have to be concerned that the FIFO will overflow, as we'll hold off
- * USB OUT transactions if there isn't enough space here.
- * We return TRUE if there _is_ space in the FIFO for another USB OUT packet's
- * worth of messages.
- *
- * @param[in]  msg		Pointer to an array of bytes that comprise a MIDI message.
- * @param[in]  msize	The number of bytes in that message.
- */
-void MIDIUART_writeMessage(uint8_t *msg, uint8_t msize);
+bool MIDIUART_writeMessage(uint8_t *msg, uint8_t msize);
 
-/**
- * Check to see if there is enough room in the MIDI UART's transmit FIFO to
- * accept an endpoint packet's worth of message bytes.
- * @return true if that's the case.
+/*
+ * Return true if there's room in the transmit FIFO (same return as above).
  */
 bool MIDIUART_isRoomInFifo(void);
 
-/**
- * Read bytes from the serial port receive FIFO and assemble them into a proper
- * USB MIDI four-byte message packet.
- * It reads however many bytes are in that FIFO. Depending on serial port traffic,
- * more than one call may be required to complete a message.
- * It returns true when a message has been fully assembled.
- *
- * @param[in,out] msg 	The assembled USB-MIDI message packet is returned here.
- * @return True when msg contains an entire USB-MIDI message packet.
- */
-bool MIDIUART_readMessage(USBMIDI_Message_t *msg);
+
+bool MIDIUART_readMessage(MIDI_Event_Packet_t *mep);
+
 
 #endif /* MIDI_UART_H_ */
