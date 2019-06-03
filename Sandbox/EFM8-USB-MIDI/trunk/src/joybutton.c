@@ -33,7 +33,7 @@ volatile uint8_t joystickDirection = JOYSTICK_NONE;	//!< should be obvious, no?
  *
  * @param[out] jbr is structure which will contain the report.
  */
-void JOYBUTTON_GetReport(joybuttonReport_t *jbr)
+void JOYBUTTON_GetReport(joybuttonReport_t xdata *jbr)
 {
 	uint8_t joyStatus = 0;
 

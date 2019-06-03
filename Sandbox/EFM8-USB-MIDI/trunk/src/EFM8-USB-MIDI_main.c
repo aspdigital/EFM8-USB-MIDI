@@ -117,18 +117,17 @@ void SiLabs_Startup(void) {
  * main() Routine
 */
 int main(void) {
-	USBMIDI_Message_t uimep;		//!< user interface MIDI events we write to the host
-	USBMIDI_Message_t spmep;		//!< events received on serial MIDI in we write to the host
-	USBMIDI_Message_t usbmep;		//!< events received from USB endpoint
-	uint8_t MsgToUart[3];			//!< MIDI messages we write to the serial transmitter
-	uint8_t MsgToUartSize;			//!< how many bytes in that message?
-	joybuttonReport_t jbr;			//!< Report indicating state of joystick and buttons.
-	bit LBState;					//!< the left button's immediate state, for toggle test
-	bit RBState;					//!< the right button's immediate state, for toggle test
-	bit CBState;					//!< joystick center button's immediate state, for toggle test
-	bool usbIntsEnabled;			//!< set if they are
-	bool roomInTxFifo;				//!< from call to MIDIUART_writeMessage()
-	Color ledcolor;					//!< The color of the RGB LED
+	USBMIDI_Message_t xdata uimep;		//!< user interface MIDI events we write to the host
+	USBMIDI_Message_t xdata spmep;		//!< events received on serial MIDI in we write to the host
+	USBMIDI_Message_t xdata usbmep;		//!< events received from USB endpoint
+	uint8_t xdata MsgToUart[3];			//!< MIDI messages we write to the serial transmitter
+	uint8_t xdata MsgToUartSize;		//!< how many bytes in that message?
+	joybuttonReport_t xdata jbr;		//!< Report indicating state of joystick and buttons.
+	bit LBState;						//!< the left button's immediate state, for toggle test
+	bit RBState;						//!< the right button's immediate state, for toggle test
+	bit CBState;						//!< joystick center button's immediate state, for toggle test
+	bool roomInTxFifo;					//!< from call to MIDIUART_writeMessage()
+	Color xdata ledcolor;				//!< The color of the RGB LED
 
 	// Call hardware initialization routine
 	enter_DefaultMode_from_RESET();
@@ -137,7 +136,7 @@ int main(void) {
 	LBState = 0;
 	RBState = 0;
 	CBState = 0;
-	roomInTxFifo = 1;		// yes, there is, at the start of time
+	roomInTxFifo = true;		// yes, there is, at the start of time
 
 	// Clear the endpoint buffer, mainly for debug.
 	// Use MsgToUartSize as the iterator so we don't have to declare another automatic.
@@ -195,11 +194,9 @@ int main(void) {
 			}
 			RGB_SetColor(ledcolor, 255);
 			LBState = !LBState;
-			usbIntsEnabled = USB_GetIntsEnabled();
-			USB_DisableInts();
+			while (USBD_EpIsBusy(EP1IN))
+				;
 			USBD_Write(EP1IN, (uint8_t *) &uimep, sizeof(uimep), false);
-			if (usbIntsEnabled)
-				USB_EnableInts();
 		} // Left Button
 
 		if (jbr.Button == RIGHT_BUTTON) {
@@ -217,11 +214,9 @@ int main(void) {
 			}
 			RGB_SetColor(ledcolor, 255);
 			RBState = !RBState;
-			usbIntsEnabled = USB_GetIntsEnabled();
-			USB_DisableInts();
+			while (USBD_EpIsBusy(EP1IN))
+				;
 			USBD_Write(EP1IN, (uint8_t *) &uimep, sizeof(uimep), false);
-			if (usbIntsEnabled)
-				USB_EnableInts();
 		} // Right Button
 
 		if (jbr.Button == CENTER_BUTTON) {
@@ -241,11 +236,9 @@ int main(void) {
 			}
 			RGB_SetColor(ledcolor, 255);
 			CBState = !CBState;
-			usbIntsEnabled = USB_GetIntsEnabled();
-			USB_DisableInts();
+			while (USBD_EpIsBusy(EP1IN))
+				;
 			USBD_Write(EP1IN, (uint8_t *) &uimep, sizeof(uimep), false);
-			if (usbIntsEnabled)
-				USB_EnableInts();
 		} // Center Button
 
 		if (jbr.X) {
@@ -257,11 +250,9 @@ int main(void) {
 			uimep.byte3 = jbr.X;
 			ledcolor.blue = jbr.X;
 			RGB_SetColor(ledcolor, 255);
-			usbIntsEnabled = USB_GetIntsEnabled();
-			USB_DisableInts();
+			while (USBD_EpIsBusy(EP1IN))
+				;
 			USBD_Write(EP1IN, (uint8_t *) &uimep, sizeof(uimep), false);
-			if (usbIntsEnabled)
-				USB_EnableInts();
 		} // Joystick X
 
 		if (jbr.Y) {
@@ -273,11 +264,9 @@ int main(void) {
 			uimep.byte3 = jbr.Y;
 			ledcolor.blue = jbr.Y;
 			RGB_SetColor(ledcolor, 255);
-			usbIntsEnabled = USB_GetIntsEnabled();
-			USB_DisableInts();
+			while (USBD_EpIsBusy(EP1IN))
+				;
 			USBD_Write(EP1IN, (uint8_t *) &uimep, sizeof(uimep), false);
-			if (usbIntsEnabled)
-				USB_EnableInts();
 		} // Joystick Y
 
 		/*
@@ -365,11 +354,9 @@ int main(void) {
 		 * We just pass along the packet.
 		 */
 		if (MIDIUART_readMessage(&spmep)) {
-			usbIntsEnabled = USB_GetIntsEnabled();
-			USB_DisableInts();
+			while (USBD_EpIsBusy(EP1IN))
+				;
 			USBD_Write(EP1IN, (uint8_t *) &spmep, sizeof(spmep), false);
-			if (usbIntsEnabled)
-				USB_EnableInts();
 		}
 
 	} // main while(1) loop

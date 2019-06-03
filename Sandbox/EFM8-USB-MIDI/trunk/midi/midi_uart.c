@@ -132,7 +132,7 @@ void MIDIUART_init(void) {
  * @param[in]  msg		Pointer to an array of bytes that comprise a MIDI message.
  * @param[in]  msize	The number of bytes in that message.
  */
-void MIDIUART_writeMessage(uint8_t *msg, uint8_t msize)
+void MIDIUART_writeMessage(uint8_t xdata *msg, uint8_t msize)
 {
 	while (msize > 0)
 	{
@@ -258,7 +258,7 @@ typedef enum {
  * @param[in,out] msg 	The assembled USB-MIDI message packet is returned here.
  * @return True when msg contains an entire USB-MIDI message packet.
  */
-bool MIDIUART_readMessage(USBMIDI_Message_t *msg) {
+bool MIDIUART_readMessage(USBMIDI_Message_t xdata *msg) {
 	// these are newly assigned at every call.
 	bool done;				// indicates packet finished or not, the return value
 	uint8_t newbyte;		// read from FIFO
