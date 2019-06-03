@@ -53,6 +53,6 @@ typedef struct {
  *
  * @param[out] jbr is structure which will contain the report.
  */
-void JOYBUTTON_GetReport(joybuttonReport_t *jbr);
+void JOYBUTTON_GetReport(joybuttonReport_t xdata *jbr);
 
 #endif

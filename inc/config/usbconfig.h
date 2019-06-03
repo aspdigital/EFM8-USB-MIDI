@@ -93,7 +93,7 @@
 #define SLAB_USB_IS_SELF_POWERED_CB            0
 #define SLAB_USB_RESET_CB                      0
 #define SLAB_USB_SETUP_CMD_CB                  0
-#define SLAB_USB_SOF_CB                        0
+#define SLAB_USB_SOF_CB                        1
 #define SLAB_USB_STATE_CHANGE_CB               1
 // [Callback Functions]$
 
@@ -152,9 +152,6 @@
 // $[Polled Mode]
 #define SLAB_USB_POLLED_MODE                   0
 // [Polled Mode]$
-
-// so we use the SiLabs default handler.
-#define USE_SLAB_EP1OUT_HANDLER 1
 
 #endif // __SILICON_LABS_USBCONFIG_H
 

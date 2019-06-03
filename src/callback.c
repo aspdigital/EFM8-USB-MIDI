@@ -66,7 +66,7 @@ void USBD_DeviceStateChangeCb(USBD_State_TypeDef oldState,
 uint16_t USBD_XferCompleteCb(uint8_t epAddr, USB_Status_TypeDef status,
 		uint16_t xferred, uint16_t remaining) {
 
-	USBMIDI_Message_t mep;
+	USBMIDI_Message_t xdata mep;
 	uint8_t *epb;
 
 	UNREFERENCED_ARGUMENT(remaining);
