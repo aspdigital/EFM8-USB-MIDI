@@ -305,10 +305,10 @@ extern void PORTS_1_enter_DefaultMode_from_RESET(void) {
 
 	// $[P1MDOUT - Port 1 Output Mode]
 	/***********************************************************************
-	 - P1.0 output is push-pull		SPI0 MOSI
-	 - P1.1 output is open-drain	SPI0 NSS (not used)
-	 - P1.2 output is open-drain    SDA (not used)
-	 - P1.3 output is open-drain    SCL (not use)
+	 - P1.0 output is push-pull		(SPI0 MOSI)
+	 - P1.1 output is open-drain	(SPI0 NSS) (not used)
+	 - P1.2 output is open-drain    (SDA) (not used)
+	 - P1.3 output is open-drain    (SCL) (not use)
 	 - P1.4 output is open-drain    Display enable
 	 - P1.5 output is open-drain    VREF caps
 	 - P1.6 output is push-pull     Green LED PCA0 CEX0
@@ -338,16 +338,16 @@ extern void PORTS_1_enter_DefaultMode_from_RESET(void) {
 
 	// $[P1SKIP - Port 1 Skip]
 	/***********************************************************************
-	 - P1.0 pin is not skipped by the crossbar
+	 - P1.0 pin is skipped by the crossbar
 	 - P1.1 pin is skipped by the crossbar
 	 - P1.2 pin is skipped by the crossbar
 	 - P1.3 pin is skipped by the crossbar
 	 - P1.4 pin is skipped by the crossbar
 	 - P1.5 pin is skipped by the crossbar
-	 - P1.6 pin is not skipped by the crossbar
-	 - P1.7 pin is not skipped by the crossbar
+	 - P1.6 pin is not skipped by the crossbar Put CEX0 here
+	 - P1.7 pin is not skipped by the crossbar Put CEX1 here
 	 ***********************************************************************/
-	P1SKIP = P1SKIP_B0__NOT_SKIPPED | P1SKIP_B1__SKIPPED | P1SKIP_B2__SKIPPED
+	P1SKIP = P1SKIP_B0__SKIPPED | P1SKIP_B1__SKIPPED | P1SKIP_B2__SKIPPED
 			| P1SKIP_B3__SKIPPED | P1SKIP_B4__SKIPPED | P1SKIP_B5__SKIPPED
 			| P1SKIP_B6__NOT_SKIPPED | P1SKIP_B7__NOT_SKIPPED;
 	// [P1SKIP - Port 1 Skip]$
@@ -418,8 +418,8 @@ extern void PORTS_0_enter_DefaultMode_from_RESET(void) {
 	 - P0.3 output is open-drain  Button 1
 	 - P0.4 output is open-drain  (BC UART_TX)
 	 - P0.5 output is open-drain  (BC UART_RX)
-	 - P0.6 output is push-pull   SPI0 SCK
-	 - P0.7 output is open-drain  SPI0 MISO
+	 - P0.6 output is push-pull   (SPI0 SCK)
+	 - P0.7 output is open-drain  (SPI0 MISO)
 	 ***********************************************************************/
 	P0MDOUT = P0MDOUT_B0__PUSH_PULL | P0MDOUT_B1__PUSH_PULL
 			| P0MDOUT_B2__OPEN_DRAIN | P0MDOUT_B3__OPEN_DRAIN
@@ -438,12 +438,12 @@ extern void PORTS_0_enter_DefaultMode_from_RESET(void) {
 	 - P0.3 pin is skipped by the crossbar
 	 - P0.4 pin is skipped by the crossbar
 	 - P0.5 pin is skipped by the crossbar
-	 - P0.6 pin is not skipped by the crossbar
-	 - P0.7 pin is not skipped by the crossbar
+	 - P0.6 pin is skipped by the crossbar
+	 - P0.7 pin is skipped by the crossbar
 	 ***********************************************************************/
 	P0SKIP = P0SKIP_B0__SKIPPED | P0SKIP_B1__SKIPPED | P0SKIP_B2__SKIPPED
 			| P0SKIP_B3__SKIPPED | P0SKIP_B4__SKIPPED | P0SKIP_B5__SKIPPED
-			| P0SKIP_B6__NOT_SKIPPED | P0SKIP_B7__NOT_SKIPPED;
+			| P0SKIP_B6__SKIPPED | P0SKIP_B7__SKIPPED;
 	// [P0SKIP - Port 0 Skip]$
 
 }

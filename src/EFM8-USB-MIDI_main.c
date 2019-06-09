@@ -132,6 +132,9 @@ int main(void) {
 	// Call hardware initialization routine
 	enter_DefaultMode_from_RESET();
 
+	// we don't use the display.
+	BSP_DISP_EN = 0;
+
 	// Initialize some other stuff.
 	LBState = 0;
 	RBState = 0;
