@@ -109,25 +109,30 @@ extern SI_SEGMENT_VARIABLE(EndpointBuffer[SLAB_USB_EP1OUT_MAX_PACKET_SIZE], uint
 // and may trigger before main() in some instances.
 //-----------------------------------------------------------------------------
 void SiLabs_Startup(void) {
-	// $[SiLabs Startup]
-	// [SiLabs Startup]$
 }
 
 /**
  * main() Routine
-*/
+ */
 int main(void) {
-	USBMIDI_Message_t xdata uimep;		//!< user interface MIDI events we write to the host
-	USBMIDI_Message_t xdata spmep;		//!< events received on serial MIDI in we write to the host
-	USBMIDI_Message_t xdata usbmep;		//!< events received from USB endpoint
-	uint8_t xdata MsgToUart[3];			//!< MIDI messages we write to the serial transmitter
-	uint8_t xdata MsgToUartSize;		//!< how many bytes in that message?
-	joybuttonReport_t xdata jbr;		//!< Report indicating state of joystick and buttons.
-	bit LBState;						//!< the left button's immediate state, for toggle test
-	bit RBState;						//!< the right button's immediate state, for toggle test
-	bit CBState;						//!< joystick center button's immediate state, for toggle test
-	bool roomInTxFifo;					//!< from call to MIDIUART_writeMessage()
-	Color xdata ledcolor;				//!< The color of the RGB LED
+	USBMIDI_Message_t xdata
+	uimep;		//!< user interface MIDI events we write to the host
+	USBMIDI_Message_t xdata
+	spmep;		//!< events received on serial MIDI in we write to the host
+	USBMIDI_Message_t xdata
+	usbmep;		//!< events received from USB endpoint
+	uint8_t xdata
+	MsgToUart[3];		//!< MIDI messages we write to the serial transmitter
+	uint8_t xdata
+	MsgToUartSize;		//!< how many bytes in that message?
+	joybuttonReport_t xdata
+	jbr;		//!< Report indicating state of joystick and buttons.
+	bit LBState;		//!< the left button's immediate state, for toggle test
+	bit RBState;		//!< the right button's immediate state, for toggle test
+	bit CBState;//!< joystick center button's immediate state, for toggle test
+	bool roomInTxFifo;				//!< from call to MIDIUART_writeMessage()
+	Color xdata
+	ledcolor;				//!< The color of the RGB LED
 
 	// Call hardware initialization routine
 	enter_DefaultMode_from_RESET();
@@ -143,7 +148,8 @@ int main(void) {
 
 	// Clear the endpoint buffer, mainly for debug.
 	// Use MsgToUartSize as the iterator so we don't have to declare another automatic.
-	for (MsgToUartSize = 0; MsgToUartSize < SLAB_USB_EP1OUT_MAX_PACKET_SIZE; MsgToUartSize++) {
+	for (MsgToUartSize = 0; MsgToUartSize < SLAB_USB_EP1OUT_MAX_PACKET_SIZE;
+			MsgToUartSize++) {
 		EndpointBuffer[MsgToUartSize] = 0;
 	}
 
@@ -175,7 +181,7 @@ int main(void) {
 	// Forever.
 	while (1) {
 		// check the joystick and buttons for changes.
-		JOYBUTTON_GetReport(&jbr);
+		JOYBUTTON_GetReport (&jbr);
 
 		/*
 		 * for now, if a button was pressed or the joystick was moved,
@@ -197,7 +203,7 @@ int main(void) {
 			}
 			RGB_SetColor(ledcolor, 255);
 			LBState = !LBState;
-			while (USBD_EpIsBusy(EP1IN))
+			while (USBD_EpIsBusy (EP1IN))
 				;
 			USBD_Write(EP1IN, (uint8_t *) &uimep, sizeof(uimep), false);
 		} // Left Button
@@ -217,7 +223,7 @@ int main(void) {
 			}
 			RGB_SetColor(ledcolor, 255);
 			RBState = !RBState;
-			while (USBD_EpIsBusy(EP1IN))
+			while (USBD_EpIsBusy (EP1IN))
 				;
 			USBD_Write(EP1IN, (uint8_t *) &uimep, sizeof(uimep), false);
 		} // Right Button
@@ -239,7 +245,7 @@ int main(void) {
 			}
 			RGB_SetColor(ledcolor, 255);
 			CBState = !CBState;
-			while (USBD_EpIsBusy(EP1IN))
+			while (USBD_EpIsBusy (EP1IN))
 				;
 			USBD_Write(EP1IN, (uint8_t *) &uimep, sizeof(uimep), false);
 		} // Center Button
@@ -253,7 +259,7 @@ int main(void) {
 			uimep.byte3 = jbr.X;
 			ledcolor.blue = jbr.X;
 			RGB_SetColor(ledcolor, 255);
-			while (USBD_EpIsBusy(EP1IN))
+			while (USBD_EpIsBusy (EP1IN))
 				;
 			USBD_Write(EP1IN, (uint8_t *) &uimep, sizeof(uimep), false);
 		} // Joystick X
@@ -267,7 +273,7 @@ int main(void) {
 			uimep.byte3 = jbr.Y;
 			ledcolor.blue = jbr.Y;
 			RGB_SetColor(ledcolor, 255);
-			while (USBD_EpIsBusy(EP1IN))
+			while (USBD_EpIsBusy (EP1IN))
 				;
 			USBD_Write(EP1IN, (uint8_t *) &uimep, sizeof(uimep), false);
 		} // Joystick Y
@@ -279,7 +285,7 @@ int main(void) {
 		 * If the cable number is neither of those, the packet is dropped on
 		 * the floor.
 		 */
-		if (USBMIDIFIFO_Pop(&usbmep)) {
+		if (USBMIDIFIFO_Pop (&usbmep)) {
 			// if it targets the hardware port, just pass it along.
 			// We don't care much about the particular event, just the port (Cable Number).
 			// the buffer is only three bytes because the USB packet can only give us
@@ -308,8 +314,7 @@ int main(void) {
 				MIDIUART_writeMessage(MsgToUart, MsgToUartSize);
 
 			} else if (USB_MIDI_CABLE_NUMBER(usbmep.event) == VIRTUAL_CN) {
-				if (usbmep.byte1
-						== MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0)) {
+				if (usbmep.byte1 == MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0)) {
 					switch (usbmep.byte2) {
 					case 80: // left button
 						ledcolor.green = usbmep.byte3 << 1;
@@ -344,9 +349,7 @@ int main(void) {
 		roomInTxFifo = MIDIUART_isRoomInFifo();
 
 		if (roomInTxFifo && !USBD_EpIsBusy(EP1OUT)) {
-			USBD_Read(EP1OUT,
-					&EndpointBuffer,
-					SLAB_USB_EP1OUT_MAX_PACKET_SIZE,
+			USBD_Read(EP1OUT, &EndpointBuffer, SLAB_USB_EP1OUT_MAX_PACKET_SIZE,
 					true);
 		}
 
@@ -356,8 +359,8 @@ int main(void) {
 		 * message format for sending to host on USB IN endpoint.
 		 * We just pass along the packet.
 		 */
-		if (MIDIUART_readMessage(&spmep)) {
-			while (USBD_EpIsBusy(EP1IN))
+		if (MIDIUART_readMessage (&spmep)) {
+			while (USBD_EpIsBusy (EP1IN))
 				;
 			USBD_Write(EP1IN, (uint8_t *) &spmep, sizeof(spmep), false);
 		}
