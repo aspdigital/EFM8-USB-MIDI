@@ -241,7 +241,7 @@ int main(void) {
 	}
 
 	// Clear the MIDI events received from the USB endpoint, mainly for debug.
-	usbmep.event = 0x00;
+	usbmep.header = 0x00;
 	usbmep.byte1 = 0x00;
 	usbmep.byte2 = 0x00;
 	usbmep.byte3 = 0x00;
@@ -276,7 +276,7 @@ int main(void) {
 		 * fun to the RGB LED.
 		 */
 		if (jbr.Button == LEFT_BUTTON) {
-			uimep.event = USB_MIDI_EVENT(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE); // CC on channel 1
+			uimep.header = USB_MIDI_HEADER(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE); // CC on channel 1
 			uimep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0); // CC on channel 1
 			uimep.byte2 = 80;		// The control to change.
 			ledcolor.blue = 0x00;
@@ -296,7 +296,7 @@ int main(void) {
 		} // Left Button
 
 		if (jbr.Button == RIGHT_BUTTON) {
-			uimep.event = USB_MIDI_EVENT(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE);
+			uimep.header = USB_MIDI_HEADER(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE);
 			uimep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0); // CC on channel 1
 			uimep.byte2 = 81;	// control to change.
 			ledcolor.blue = 0x00;
@@ -316,7 +316,7 @@ int main(void) {
 		} // Right Button
 
 		if (jbr.Button == CENTER_BUTTON) {
-			uimep.event = USB_MIDI_EVENT(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE);
+			uimep.header = USB_MIDI_HEADER(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE);
 			uimep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0); // CC on channel 1
 			uimep.byte2 = 82;	// control to change.
 			if (CBState == 0) {
@@ -340,7 +340,7 @@ int main(void) {
 		if (jbr.X) {
 			ledcolor.red = 0x00;
 			ledcolor.green = 0x00;
-			uimep.event = USB_MIDI_EVENT(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE);
+			uimep.header = USB_MIDI_HEADER(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE);
 			uimep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0); // CC on channel 1
 			uimep.byte2 = 83;
 			uimep.byte3 = jbr.X;
@@ -354,7 +354,7 @@ int main(void) {
 		if (jbr.Y) {
 			ledcolor.red = 0x00;
 			ledcolor.green = 0x00;
-			uimep.event = USB_MIDI_EVENT(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE);
+			uimep.header = USB_MIDI_HEADER(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE);
 			uimep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0); // CC on channel 1
 			uimep.byte2 = 84;
 			uimep.byte3 = jbr.Y;
@@ -377,12 +377,12 @@ int main(void) {
 			// We don't care much about the particular event, just the port (Cable Number).
 			// the buffer is only three bytes because the USB packet can only give us
 			// up to three bytes at a time.
-			if (USB_MIDI_CABLE_NUMBER(usbmep.event) == UART_CN) {
+			if (USB_MIDI_CABLE_NUMBER(usbmep.header) == UART_CN) {
 				MsgToUart[0] = usbmep.byte1;
 				MsgToUart[1] = usbmep.byte2;
 				MsgToUart[2] = usbmep.byte3;
 
-				switch (USB_MIDI_CODE_INDEX_NUMBER(usbmep.event)) {
+				switch (USB_MIDI_CODE_INDEX_NUMBER(usbmep.header)) {
 				case USB_MIDI_CIN_SYSEND1:
 				case USB_MIDI_CIN_SINGLEBYTE:
 					MsgToUartSize = 1;
@@ -400,7 +400,7 @@ int main(void) {
 
 				MIDIUART_writeMessage(MsgToUart, MsgToUartSize);
 
-			} else if (USB_MIDI_CABLE_NUMBER(usbmep.event) == VIRTUAL_CN) {
+			} else if (USB_MIDI_CABLE_NUMBER(usbmep.header) == VIRTUAL_CN) {
 				if (usbmep.byte1 == MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0)) {
 					switch (usbmep.byte2) {
 					case 80: // left button
