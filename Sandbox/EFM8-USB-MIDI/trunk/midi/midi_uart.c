@@ -1,5 +1,5 @@
 /**
- * midi_uart.c
+ * \file midi_uart.c
  *
  *  Created on: Apr 20, 2019
  *      Author: andy
@@ -239,6 +239,7 @@ bool MIDIUART_isRoomInFifo(void)
  * it as byte1. Check count,
  *
  *******************************************************************************
+ * \enum MIDIUART_state_t
  */
 typedef enum {
 	MU_IDLE,		//!< waiting to start a new packet
@@ -260,13 +261,13 @@ typedef enum {
  */
 bool MIDIUART_readMessage(USBMIDI_Message_t xdata *msg) {
 	// these are newly assigned at every call.
-	bool done;				// indicates packet finished or not, the return value
-	uint8_t newbyte;		// read from FIFO
+	bool done;				//!< indicates packet finished or not, the return value
+	uint8_t newbyte;		//!< This was read from the FIFO
 	// saved each time through.
-	static uint8_t cin;			// Code Index Number for this packet
-	static uint8_t bytecnt;		// iterator for data bytes in this packet
-	static uint8_t bytesinpacket;	// set by status parser for running status.
-	static MIDIUART_state_t state = MU_IDLE;
+	static uint8_t cin;			//!< Code Index Number for this packet
+	static uint8_t bytecnt;		//!< iterator for data bytes in this packet
+	static uint8_t bytesinpacket;	//!< set by status parser for running status.
+	static MIDIUART_state_t state = MU_IDLE;	//!< state register
 
 	// start not done, obviously. This will be set as necessary.
 	done = false;
@@ -400,7 +401,7 @@ bool MIDIUART_readMessage(USBMIDI_Message_t xdata *msg) {
 
 					// and we know the event header byte from the Code Index Number
 					// we set above.
-					msg->event = USB_MIDI_EVENT(UART_CN, cin);
+					msg->header = USB_MIDI_HEADER(UART_CN, cin);
 
 				} // if newbyte
 				break; // out of idle.
@@ -437,7 +438,7 @@ bool MIDIUART_readMessage(USBMIDI_Message_t xdata *msg) {
 				// packet, which means we are done. it also means we know which
 				// CIN to assign.
 				if (msg->byte2 == MIDI_MSG_EOX) {
-					msg->event = USB_MIDI_EVENT(UART_CN, USB_MIDI_CIN_SYSEND2);
+					msg->header = USB_MIDI_HEADER(UART_CN, USB_MIDI_CIN_SYSEND2);
 					done = true;
 					state = MU_IDLE;
 				} else {
@@ -455,12 +456,12 @@ bool MIDIUART_readMessage(USBMIDI_Message_t xdata *msg) {
 				// packet, which means we are done. It also means we know which CIN
 				// to assign.
 				if (msg->byte3 == MIDI_MSG_EOX) {
-					msg->event = USB_MIDI_EVENT(UART_CN, USB_MIDI_CIN_SYSEND3);
+					msg->header = USB_MIDI_HEADER(UART_CN, USB_MIDI_CIN_SYSEND3);
 					state = MU_IDLE;
 				} else {
 					// it's not the end of the packet. There is more. But we have
 					// completely filled our MIDI packet, so send it off.
-					msg->event = USB_MIDI_EVENT(UART_CN, USB_MIDI_CIN_SYSEXSTART);
+					msg->header = USB_MIDI_HEADER(UART_CN, USB_MIDI_CIN_SYSEXSTART);
 					// but we know that the next byte in the serial receive FIFO is
 					// part of the SysEx message, so go get it.
 					state = MU_SYSEX1;

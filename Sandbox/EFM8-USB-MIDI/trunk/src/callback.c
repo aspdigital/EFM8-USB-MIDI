@@ -62,6 +62,7 @@ void USBD_DeviceStateChangeCb(USBD_State_TypeDef oldState,
  * @param[in] status: transfer status. If not OK, we have problems.
  * @param[in] xferred: how many bytes are in our endpoint buffer.
  * @param[in] remaining: # of bytes left to receive from this endpoint.
+ * @return 0 for bulk endpoints.
  */
 uint16_t USBD_XferCompleteCb(uint8_t epAddr, USB_Status_TypeDef status,
 		uint16_t xferred, uint16_t remaining) {
@@ -75,7 +76,7 @@ uint16_t USBD_XferCompleteCb(uint8_t epAddr, USB_Status_TypeDef status,
 	{
 		epb = EndpointBuffer;
 		while (xferred) {
-			mep.event = *epb++;
+			mep.header = *epb++;
 			mep.byte1 = *epb++;
 			mep.byte2 = *epb++;
 			mep.byte3 = *epb++;

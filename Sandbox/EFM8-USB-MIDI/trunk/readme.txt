@@ -3,12 +3,13 @@ General concept of how this works.
 ** MIDI IN, to host computer over BULK IN Endpoint. **
 Any time there is an event that requires data to be sent back to the host, we call USBD_Write()
 with a MIDI_Event_Packet_t as the data buffer and the count set to 4, the size of that packet.
-Callback is set false, as we don't care.
+Callback is set false, as we don't care. Prior to calling USBD_Write(), we check to see if the 
+endpoint is already busy, and wait for it to not be so.
 
 
-** MIDI OUT, from host computer to USB device over bulk endpoint ** 
+** MIDI OUT, from host computer to USB device over bulk out endpoint ** 
 
-OUT EP1 has its max packet size set to 8. This means that up to two MIDI messages (4 bytes each)
+OUT EP1 has its max packet size set to 32. This means that up to eight MIDI messages (4 bytes each)
 can be sent from the host in a packet. In some cases only one message is sent. This
 needs to be handled. One way to handle this would be to push all incoming MIDI messages into
 a software FIFO (akin to the UART FIFOs). Perhaps the FIFO needs to store only, say, 

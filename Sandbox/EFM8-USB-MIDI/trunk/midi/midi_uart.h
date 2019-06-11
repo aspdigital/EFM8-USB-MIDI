@@ -1,5 +1,5 @@
-/*
- * midi_uart.h
+/**
+ * \file midi_uart.h
  *
  *  Created on: Apr 20, 2019
  *      Author: andy
