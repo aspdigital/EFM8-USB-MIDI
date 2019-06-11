@@ -1,23 +1,110 @@
-/* @file EFM8-USB-MIDI.c
+/** @file EFM8-USB-MIDI.c
  *
- * Main() for a USB-MIDI class-compliant device.
+ * Andy Peters, devel@latke.net (c) 2019
+ * Many parts (c) Silicon Labs.
  *
- * MIDI ports are the hardware or virtual connections.
+ * A USB-MIDI class-compliant device, implemented in the Silicon Labs
+ * EFM8UB2 devices. This design will run on the EFM8UB STK (SLSTK2001A).
+ *
+ * It uses v4.1.6 of the SiLabs 8051 SDK. (To prevent pain from referencing
+ * library sources, the SiLabs libraries are included as part of the source
+ * tarball.)
+ *
+ * The reader is encouraged to consult several documents for more details. It is
+ * assumed that details of how MIDI works are understood, and as such are not
+ * repeated here.
+ *
+ * A) The MIDI 1.0 specification at https://www.midi.org/specifications
+ * B) The USB Audio Device Class specification at
+ * 	https://usb.org/document-library/usb-audio-devices-rev-30-and-adopters-agreement
+ * 	as the USB MIDI spec is "subclass" if you will of USB Audio
+ * C) The USB MIDI Devices spec at https://usb.org/document-library/usb-midi-devices-10
+ *
+ **************************************************************************
+ *
+ * MIDI over USB transfers take place over Bulk endpoints. A USB Bulk OUT endpoint
+ * is used to send MIDI messages to a device. A Bulk IN endpoint is used to send
+ * messages back to the host.
+ *
+ **************************************************************************
+ *
+ * MIDI is a "streaming interface" associated with an Audio Class device. The
+ * device must define an Audio Control interface and (to be useful) one or more
+ * streaming interfaces. (The other streaming interfaces are audio samples in and
+ * out.)
+ *
+ **************************************************************************
+ *
+ * In the USB MIDI world, MIDI ports can be either hardware or "virtual" connections.
+ * These are my definitions, noted here so the reader understands what I mean.
+ *
+ * A hardware connection is via the standard serial MIDI port using DIN connectors.
+ * A "virtual" connection is one that is otherwise handled in the device, that is,
+ * not available on a DIN connector and in fact is never serialized or deserialized.
+ *
+ * MIDI has always supported the idea of "channels." A MIDI device can be configured
+ * to listen to a single particular channel. On devices which use the serial MIDI
+ * ports, that selection was done with a 16-position switch. Therefore, one MIDI
+ * port could support (listen and talk) on one of 16 channels. The channels on MIDI
+ * devices are counted from 1 to 16; however the status bytes of a message count
+ * channels as 0 to 15. So be aware of this.
+ *
+ * Messages for the serial port MIDI can be 2 or 3 bytes, or possibly more for
+ * SysEx messages. Messages have a "Status Byte" followed by "Data Bytes."
+ *
+ * USB MIDI expands on that idea with the concept of "cables." The USB pipe can
+ * be thought of as a multiplexor, combining sixteen virtual cables onto one. Since
+ * "cables" are not part of the MIDI spec, the USB MIDI implementation specifies
+ * that all messages are sent in four-byte packets. The first byte is called the
+ * "Packet Header." This header contains the Cable Number in the upper nybble,
+ * which indicates which virtual cable is the message should go on, and a "Code
+ * Index Number" (CIN) on the lower nybble. The CIN indicates the classification
+ * of the other three bytes in the message packet.
+ *
+ * Since the Packet Header can address only 16 cables, this sets the limit on
+ * messages that can be sent over one Endpoint. If more than 16 cables are needed
+ * then two (or more) Bulk endpoints must be used.
+ *
+ * One can think of "cables" as "ports." Your MIDI device may have several MIDI
+ * OUT jacks, each of which connects to something else over a cable. So I will
+ * use "cable" and "port" somewhat interchangeably.
+ *
+ * There is nothing saying that IN Port 1 and OUT Port 1 must be related. From
+ * the perspective of the computer, they are completely independent.
+ *
+ * The USB MIDI spec introduces the concept of "jacks." Jacks are how the MIDI
+ * network is defined within a USB MIDI device. They are not necessarily the
+ * physical DIN connectors on the back panel of a device, although they could be.
+ * Please see the discussion in the USB MIDI spec for details.
+ *
+ **************************************************************************
+ *
  * This design has two in and two out ports.
- * Port 0 is the virtual port we use to control the hardware (for IN) and send back
- * 	button-and-knob changes.
- * Port 1 is the physical port connected to UART1.
  *
- * USB MIDI OUT messages for port 1 are routed to UART1 for transmit.
- * The event part of the messages is stripped off and the three data bytes are
- * loaded into the UART's transmit buffer.
+ * Ports 0 are virtual ports. Port 0 MIDI IN (which is USB OUT) is used to control
+ * the device in some interesting way. On the EFM8 STK, the RGB LED is controlled
+ * by MIDI messages from the host. Port 0 MIDI OUT) is used to send messages back
+ * to the host. On the EFM8 STK, button  presses and joystick moves are sent back
+ * to the host using Port 0 OUT (USB IN).
+ *
+ * Ports 1 is a standard serial MIDI port, using a UART at 31.25 bkps. On the EFM8
+ * STK, UART1 is used for this port. The proper optoisolator is required on the
+ * input. The EFM8 port pins have sufficient drive to turn on the LED in the
+ * (receive port's) optoisolator through the standard series resistors.
+ *
+ * USB MIDI OUT messages for port 1 are handled as such: the packet header of the
+ * USB messages is stripped off and the three data bytes are loaded into a FIFO
+ * in front of the UART's transmit buffer.
  *
  * Messages received on physical port 1 in have an event byte added and a USB
  * MIDI message is built from what was received, and that message is written
- * to the MIDI bulk IN endpoint.
+ * to the MIDI bulk IN endpoint. Care is taken to ensure that messages that use
+ * running status are handled correctly. (Running status are message without
+ * a status byte, only the data bytes, with the understanding that the previous
+ * status byte applies.)
  *
  **************************************************************************
- * DATA HANDLING, USB OUT ENDPOINTS.  (over endpoint 1)
+ * DATA HANDLING, USB OUT ENDPOINT 1.
  *
  * To start accepting MIDI packets over USB, we call USBD_Read() in the device
  * state change callback. This passes a user buffer and size to the endpoint
@@ -81,6 +168,13 @@
  * 	armed (by a previous call), that call just returns without doing anything.
  *
  **************************************************************************
+ * This code uses the SiLabs EFM8UB2 peripheral drivers for ADC0, UART1 and USB0.
+ * It uses the EFM8_USB library.
+ * It uses BSP drivers for the joystick and the LED.
+ * The button and joystick handlers were combined into source joybutton.c/h.
+ * As the joystick uses the ADC, the ISR for the ADC-convert-done handler is in
+ * the joybutton.c source.
+ * Timer 5 is used to pace the A/D conversions.
  */
 
 #include <SI_EFM8UB2_Register_Enums.h>  //!< SFR declarations
@@ -94,7 +188,7 @@
 #include "midi_uart.h"					//!< serial-port MIDI support
 
 /**
- * Global buffer for the OUT endpoint.
+ * Global buffer for the USB OUT endpoint.
  * This is provided to USBD_Read() every time that function is called.
  * This is declared in callback.c.
  */
@@ -115,24 +209,17 @@ void SiLabs_Startup(void) {
  * main() Routine
  */
 int main(void) {
-	USBMIDI_Message_t xdata
-	uimep;		//!< user interface MIDI events we write to the host
-	USBMIDI_Message_t xdata
-	spmep;		//!< events received on serial MIDI in we write to the host
-	USBMIDI_Message_t xdata
-	usbmep;		//!< events received from USB endpoint
-	uint8_t xdata
-	MsgToUart[3];		//!< MIDI messages we write to the serial transmitter
-	uint8_t xdata
-	MsgToUartSize;		//!< how many bytes in that message?
-	joybuttonReport_t xdata
-	jbr;		//!< Report indicating state of joystick and buttons.
+	USBMIDI_Message_t xdata	uimep;		//!< user interface MIDI events we write to the host
+	USBMIDI_Message_t xdata	spmep;		//!< events received on serial MIDI in we write to the host
+	USBMIDI_Message_t xdata	usbmep;		//!< events received from USB endpoint
+	uint8_t xdata	MsgToUart[3];		//!< MIDI messages we write to the serial transmitter
+	uint8_t xdata	MsgToUartSize;		//!< how many bytes in that message?
+	joybuttonReport_t xdata	jbr;		//!< Report indicating state of joystick and buttons.
 	bit LBState;		//!< the left button's immediate state, for toggle test
 	bit RBState;		//!< the right button's immediate state, for toggle test
 	bit CBState;//!< joystick center button's immediate state, for toggle test
-	bool roomInTxFifo;				//!< from call to MIDIUART_writeMessage()
-	Color xdata
-	ledcolor;				//!< The color of the RGB LED
+	bool roomInTxFifo;					//!< from call to MIDIUART_writeMessage()
+	Color xdata	ledcolor;				//!< The color of the RGB LED
 
 	// Call hardware initialization routine
 	enter_DefaultMode_from_RESET();
