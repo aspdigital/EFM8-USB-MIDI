@@ -75,7 +75,11 @@
  * The USB MIDI spec introduces the concept of "jacks." Jacks are how the MIDI
  * network is defined within a USB MIDI device. They are not necessarily the
  * physical DIN connectors on the back panel of a device, although they could be.
- * Please see the discussion in the USB MIDI spec for details.
+ * Please see the discussion in the USB MIDI spec for details. For this example,
+ * the jacks define the path from the host to either the "front panel" (the LED)
+ * or the hardware MIDI serial port, and from the buttons or the hardware MIDI
+ * serial port back to the host. The jacks are defined in the device descriptors,
+ * see descriptors.c for how this is done.
  *
  **************************************************************************
  *
@@ -152,20 +156,82 @@
  * that there's always enough space in it for at least one Endpoint Packet's
  * worth of messages. With max packet size set to 32, that's at most 8 messages,
  * which itself is at most 3 bytes per or 24 bytes total. We set the serial
- * transmit FIFO almost-full threshold to that level.
+ * transmit FIFO almost-full threshold to half the endpoint packet size, to allow
+ * for more elasticity.
  *
  * Therefore:
- * a) The endpoint is "armed" at configuration end.
- * b) It gets "disarmed" when an OUT transaction is handled and its contents are
- * 	pushed to the MIDI message FIFO.
+ * a) The endpoint is "armed" at configuration end (in the state-change callback).
+ * b) It gets "disarmed" automatically by the library interrupt handler when an
+ *  OUT transaction is handled and its contents are pushed to the MIDI message FIFO.
  * c) After popping the MIDI message FIFO, we parse the message, and if intended
  * 	for the serial port, we write it to the serial FIFO. That write function
  * 	returns true if there is enough room in the serial FIFO for another whole
- * 	USB packet of MIDI messages, we set a flag, and after all parsing is done,
+ * 	USB packet of MIDI messages. If so, we set a flag, and after all parsing is done,
  * 	we call USBD_Read() to arm the endpoint.
  *  If there were no messages intended for the serial port we arm the endpoint
  * 	anyway. In any event, if we call USBD_Read() and the endpoint is already
  * 	armed (by a previous call), that call just returns without doing anything.
+ *
+ **************************************************************************
+ * DATA HANDLING, USB IN ENDPOINT 1.
+ *
+ * Data returned to the host can come from either of two sources:
+ * a) When any of the buttons are pressed or the joystick is wiggled, and
+ * b) When a message is received from the hardware serial MIDI port.
+ *
+ * For the former: every time through the main loop the function JOYBUTTON_GetReport(&jbr)
+ * is called. The report returned in jbr is parsed. Each button and the joystick
+ * (both its button and the up/down/left/right) are separate "controls" and for
+ * each a different USB MIDI control change message is built. The Cable Number is
+ * set to zero to indicate to the host that the message came from the user interface,
+ * not the serial port. Then that message is written to the host with USBD_Write().
+ *
+ * For the latter: every time through the main loop the function MIDIUART_readMessage(&spmep)
+ * is called. The argument spmep is a USB-MIDI message packet. We don't do anything
+ * with this packet here, so we just ship it off to the host with USBD_Write().
+ * The message packet built in MIDIUART_readMessage() sets the Cable Number to 1
+ * so the host knows that the source of the message was from the serial port and
+ * not the user interface things on the board.
+ *
+ **************************************************************************
+ * Hardware (standard 31.25 kbps serial) MIDI support.
+ *
+ * We fully support MIDI over old-school serial on DIN connectors. UART1 is
+ * configured for 31.25 kbps operation using its built-in baud-rate generator.
+ * The optoisolator is required on the receive port, so some external hardware
+ * is necessary.
+ *
+ * The functions for handling the UART MIDI messages are in midi_uart.c/h.
+ *
+ * For MIDI IN, the serial receive port stuffs everything that arrives into a
+ * FIFO. The main loop calls MIDIUART_readMessage() repeatedly. Each time that
+ * function is called, the receive FIFO is popped and new bytes are parsed by
+ * a state machine. If the FIFO is empty or is emptied before all bytes of a message
+ * are received, the function returns FALSE. The next call(s) will eventually
+ * complete reception of the entire message. If a complete message is received,
+ * the function returns TRUE (and there may be more bytes in the FIFO, but they
+ * are handled on the next call).
+ * Since this example doesn't do anything on the board with the received packets,
+ * the main loop then just writes them to the host with USBD_Write().
+ *
+ * For MIDI OUT, the only source for messages is the USB on Cable Number 1. Every
+ * time through the main loop, the USB MIDI input message FIFO is popped and the
+ * header of the new message is inspected. If the Cable Number indicates that the
+ * message is intended for the hardware port, the data bytes in the message are
+ * put into a buffer for writing to the serial transmitter. The header is parsed
+ * to find out how many bytes of the message need are to be sent. That buffer is
+ * written to the MIDI UART FIFO. If there is room in that FIFO for more messages,
+ * the BULK OUT endpoint is re-armed with a call to USBD_Read().
+ *
+ * Note that if there is no room in the serial transmitter's FIFO for another
+ * message, messages intended for the board (the virtual cable) are still blocked
+ * until that FIFO has space. This is because we cannot know in advance whether
+ * new messages are intended for the UART or the board. In practice this should
+ * not be an issue. (Famous last words.)
+ **************************************************************************
+ * The LEDs on the board are controlled both by buttons and the joystick as well
+ * as via MIDI message from the host over USB. This is just to demonstrate how
+ * this can be done.
  *
  **************************************************************************
  * This code uses the SiLabs EFM8UB2 peripheral drivers for ADC0, UART1 and USB0.
@@ -175,6 +241,42 @@
  * As the joystick uses the ADC, the ISR for the ADC-convert-done handler is in
  * the joybutton.c source.
  * Timer 5 is used to pace the A/D conversions.
+ **************************************************************************
+ *
+ * EFM8 RESOURCE USAGE.
+ *
+ * ADC_0:
+ * SAR Clock Divider = 0x05
+ * Right-justified data
+ * Conversion starts on overflow of Timer 5.
+ * Analog input on P0.4, other input to ADC is ground.
+ * Voltage reference is VDD.
+ *
+ * HFOSC_0:
+ * SYSCLK is HFOSC / 1.
+ * HFOSC is used as SYSCLK and USBCLK.
+ *
+ * INTERRUPTS.
+ * ADINT enabled.
+ * USBINT enabled.
+ * UART1 Interrupts enabled.
+ *
+ * CROSSBAR is enabled.
+ * Weak pullups enabled.
+ * CEX0, CEX1, CEX2 routed to pins.
+ * UART1 TX, RX routed to pins.
+ *
+ * PORTS: See InitDevice.c.
+ *
+ * PCA_0 enabled.
+ * Uses SYSCLK.
+ * Watchdog disabled.
+ * PCACH_0 enabled, set as 8-bit PWM output on CEX0, used for LED.
+ * PCACH_1 enabled, set as 8-bit PWM output on CEX1, used for LED.
+ * PCACH_2 enabled, set as 8-bit PWM output on CEX2, used for LED.
+ *
+ * TIMER_5 enabled.
+ * Used to start A/D conversions at maximum sample rate.
  */
 
 #include <SI_EFM8UB2_Register_Enums.h>  //!< SFR declarations
