@@ -380,7 +380,7 @@ int main(void) {
 		if (jbr.Button == LEFT_BUTTON) {
 			uimep.header = USB_MIDI_HEADER(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE); // CC on channel 1
 			uimep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0); // CC on channel 1
-			uimep.byte2 = 80;		// The control to change.
+			uimep.byte2 = MIDI_CC_GP5;		// The control to change.
 			ledcolor.blue = 0x00;
 			ledcolor.green = 0x00;
 			if (LBState == 0) {
@@ -400,7 +400,7 @@ int main(void) {
 		if (jbr.Button == RIGHT_BUTTON) {
 			uimep.header = USB_MIDI_HEADER(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE);
 			uimep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0); // CC on channel 1
-			uimep.byte2 = 81;	// control to change.
+			uimep.byte2 = MIDI_CC_GP6;	// control to change.
 			ledcolor.blue = 0x00;
 			ledcolor.red = 0x00;
 			if (RBState == 0) {
@@ -420,7 +420,7 @@ int main(void) {
 		if (jbr.Button == CENTER_BUTTON) {
 			uimep.header = USB_MIDI_HEADER(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE);
 			uimep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0); // CC on channel 1
-			uimep.byte2 = 82;	// control to change.
+			uimep.byte2 = MIDI_CC_GP7;	// control to change.
 			if (CBState == 0) {
 				ledcolor.green = 0x7F;
 				ledcolor.blue = 0x7F;
@@ -444,7 +444,7 @@ int main(void) {
 			ledcolor.green = 0x00;
 			uimep.header = USB_MIDI_HEADER(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE);
 			uimep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0); // CC on channel 1
-			uimep.byte2 = 83;
+			uimep.byte2 = MIDI_CC_GP8;
 			uimep.byte3 = jbr.X;
 			ledcolor.blue = jbr.X;
 			RGB_SetColor(ledcolor, 255);
@@ -458,7 +458,7 @@ int main(void) {
 			ledcolor.green = 0x00;
 			uimep.header = USB_MIDI_HEADER(VIRTUAL_CN, USB_MIDI_CIN_CTRLCHANGE);
 			uimep.byte1 = MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0); // CC on channel 1
-			uimep.byte2 = 84;
+			uimep.byte2 = MIDI_CC_PORTAMENTOCTRL;
 			uimep.byte3 = jbr.Y;
 			ledcolor.blue = jbr.Y;
 			RGB_SetColor(ledcolor, 255);
@@ -505,22 +505,22 @@ int main(void) {
 			} else if (USB_MIDI_CABLE_NUMBER(usbmep.header) == VIRTUAL_CN) {
 				if (usbmep.byte1 == MIDI_STATUS_BYTE(MIDI_MSG_CTRLCHANGE, 0)) {
 					switch (usbmep.byte2) {
-					case 80: // left button
+					case MIDI_CC_GP5: // left button
 						ledcolor.green = usbmep.byte3 << 1;
 						ledcolor.red = 0;
 						ledcolor.blue = 0;
 						break;
-					case 81: // right button
+					case MIDI_CC_GP6: // right button
 						ledcolor.green = 0;
 						ledcolor.red = usbmep.byte3 << 1;
 						ledcolor.blue = 0;
 						break;
-					case 82: // joystick X
+					case MIDI_CC_GP7: // joystick X
 						ledcolor.green = 0;
 						ledcolor.red = 0;
 						ledcolor.blue = usbmep.byte3 << 1;
 						break;
-					case 83: // joystick Y
+					case MIDI_CC_GP8: // joystick Y
 						ledcolor.green = 0; //midiInMsg.byte3 << 1;
 						ledcolor.red = 0;
 						ledcolor.blue = usbmep.byte3 << 1;
