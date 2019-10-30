@@ -14,6 +14,8 @@
  *
  * Modified:
  * 2019-05-23 andy. Better header, clean up.
+ * 2019-10-30 andy. No need to prime the USB OUT endpoint pump with USBD_Read()
+ * 	here -- the first call in the main loop is sufficient.
  */
 
 #include <efm8_usb.h>
@@ -41,6 +43,7 @@ void USBD_SofCb(uint16_t sofNr) {
  */
 void USBD_DeviceStateChangeCb(USBD_State_TypeDef oldState,
                               USBD_State_TypeDef newState) {
+/*
 	UNREFERENCED_ARGUMENT(oldState);
 	if (newState == USBD_STATE_CONFIGURED) {
 		USBD_Read(EP1OUT,
@@ -48,6 +51,7 @@ void USBD_DeviceStateChangeCb(USBD_State_TypeDef oldState,
 				SLAB_USB_EP1OUT_MAX_PACKET_SIZE,
 				true);
 	}
+*/
 } // USBD_DeviceStateChangeCb()
 
 /**
